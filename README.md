@@ -4,10 +4,11 @@ The purpose of this project is to create a useful local development environment 
 
 Installation
 ------------
-1. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
-2. Install [Vagrant](http://www.vagrantup.com/downloads.html).
-3. Install Git (MAC/BSD/Linux) via your package manager or Git Bash (Windows).  See [Git for Windows](https://msysgit.github.io/).
-4. Open Terminal (MAC/BSD/Linux) or Git Bash (Windows).  Windows users should run as administrator.  See [Configure Applications to Always Run as an Administrator](https://technet.microsoft.com/en-us/magazine/ff431742.aspx).
+Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
+Install [Vagrant](http://www.vagrantup.com/downloads.html).
+Install Git (MAC/BSD/Linux) via your package manager or Git Bash (Windows).  See [Git for Windows](https://msysgit.github.io/).
+Open Terminal (MAC/BSD/Linux) or Git Bash (Windows).  Windows users should run as administrator.
+See [Configure Applications to Always Run as an Administrator](https://technet.microsoft.com/en-us/magazine/ff431742.aspx).
 **Replace *site* with the Pantheon Site Name.**
 > $ git clone https://github.com/uberhacker/pantheon-local-drupal-development.git
 > $ cd pantheon-local-drupal-development
@@ -17,8 +18,8 @@ Installation
 > vagrant@debian ~$ site-install (follow prompts)
 > vagrant@debian ~$ exit
 > $ hosts.sh add *site*
-5. Visit http://*site*.dev in your favorite browser.
-6. Enjoy.
+Visit http://*site*.dev in your favorite browser.
+Enjoy.
 
 Maintenance
 -----------
