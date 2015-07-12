@@ -10,14 +10,16 @@ Install Git (MAC/BSD/Linux) via your package manager or Git Bash (Windows).  See
 Open Terminal (MAC/BSD/Linux) or Git Bash (Windows).  Windows users should run as administrator.
 See [Configure Applications to Always Run as an Administrator](https://technet.microsoft.com/en-us/magazine/ff431742.aspx).
 **Replace *site* with the Pantheon Site Name.**
-> $ git clone https://github.com/uberhacker/pantheon-local-drupal-development.git
-> $ cd pantheon-local-drupal-development
-> $ vagrant up
-> $ vagrant ssh
-> vagrant@debian ~$ git-config (follow prompts)
-> vagrant@debian ~$ site-install (follow prompts)
-> vagrant@debian ~$ exit
-> $ hosts.sh add *site*
+<blockquote>
+$ git clone https://github.com/uberhacker/pantheon-local-drupal-development.git
+$ cd pantheon-local-drupal-development
+$ vagrant up
+$ vagrant ssh
+vagrant@debian ~$ git-config (follow prompts)
+vagrant@debian ~$ site-install (follow prompts)
+vagrant@debian ~$ exit
+$ hosts.sh add *site*
+</blockquote>
 Visit http://*site*.dev in your favorite browser.
 Enjoy.
 
