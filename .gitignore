@@ -34,3 +34,6 @@ xmlrpc.php
 /profiles
 /scripts
 /themes
+
+# Ignore Vagrant files
+.vagrant/*
