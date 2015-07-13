@@ -14,6 +14,8 @@ Open Terminal (MAC/BSD/Linux) or Git Bash (Windows).  Windows users should run a
 
 See [Configure Applications to Always Run as an Administrator](https://technet.microsoft.com/en-us/magazine/ff431742.aspx).
 **Replace *site* with the Pantheon Site Name.**
+> $ git config --global core.autocrlf false  **This step is important**
+
 > $ git clone https://github.com/uberhacker/pantheon-local-drupal-development.git
 
 > $ cd pantheon-local-drupal-development
