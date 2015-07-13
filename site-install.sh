@@ -35,7 +35,6 @@ if [ "$LOGGEDIN" == "You are not logged in." ]; then
       exit
     else
       echo -n "Save email address? (Y/n): "; read -n 1 SAVEMAIL
-      echo $'\n'
       if [ -z "$SAVEMAIL" ]; then
         SAVEMAIL=y
       fi
@@ -116,9 +115,9 @@ fi
 cd /var/www
 git clone "ssh://codeserver.dev.$ID@codeserver.dev.$ID.drush.in:2222/~/repository.git" $SITENAME
 if [ -d /var/www/$SITENAME ]; then
+  DBNAME=${SITENAME//-/_}
   if [ ! -f /etc/apache2/sites-available/$SITENAME ]; then
     # Create MySQL/MariaDB database
-    DBNAME=${SITENAME//-/_}
     echo "drop database if exists $DBNAME" | mysql -u root
     echo "create database $DBNAME" | mysql -u root
     echo "grant all on $DBNAME.* to drupal@localhost identified by 'drupal'" | mysql -u root
