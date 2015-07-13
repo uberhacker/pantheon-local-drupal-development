@@ -4,7 +4,9 @@ The purpose of this project is to create a useful local development environment 
 
 Installation
 ------------
-Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
+Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads). **Tested with version 4.3.30.  Version 5.0 is untested and may cause issues.**
+
+Install [VirtualBox Extension Pack](https://www.virtualbox.org/wiki/Downloads).
 
 Install [Vagrant](http://www.vagrantup.com/downloads.html).
 
