@@ -22,6 +22,8 @@ fi
 
 EMAIL=""
 PASSWORD=""
+HTTPUSER=""
+HTTPPASS=""
 if [ -f $HOME/.terminus_auth ]; then
   while read line; do
     for pair in $line; do
@@ -31,6 +33,12 @@ if [ -f $HOME/.terminus_auth ]; then
       fi
       if [ "$1" == "password" ]; then
         PASSWORD=${line#"$1="}
+      fi
+      if [ "$1" == "httpuser" ]; then
+        HTTPUSER=${line#"$1="}
+      fi
+      if [ "$1" == "httppass" ]; then
+        HTTPPASS=${line#"$1="}
       fi
     done
   done < $HOME/.terminus_auth
@@ -68,6 +76,18 @@ if [ "$LOGGEDIN" == "You are not logged in." ]; then
       if [ "$SAVEPASS" == "y" ]; then
         echo "password=$PASSWORD" >> $HOME/.terminus_auth
       fi
+    fi
+  fi
+  if [ -z "$HTTPUSER" ]; then
+    echo -n "Enter the HTTP Basic Authentication username: "; read HTTPUSER
+    if [ ! -z "$HTTPUSER" ]; then
+      echo "httpuser=$HTTPUSER" >> $HOME/.terminus_auth
+    fi
+  fi
+  if [ -z "$HTTPPASS" ]; then
+    echo -n "Enter the HTTP Basic Authentication password: "; read -s HTTPPASS
+    if [ ! -z "$HTTPPASS" ]; then
+      echo "httppass=$HTTPPASS" >> $HOME/.terminus_auth
     fi
   fi
   # Change email to match commits to Pantheon
@@ -187,6 +207,16 @@ if [ -d /var/www/$SITENAME ]; then
     #drush en -y migrate_extras coder devel_themer hacked redis stage_file_proxy
     drush dl -n stage_file_proxy
     drush en -y stage_file_proxy
+    DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
+    if [ ! -z "$DOMAIN" ]; then
+      drush vset stage_file_proxy_hotlink 1
+      if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
+        drush vset stage_file_proxy_origin "https://$HTTPUSER:$HTTPPASS@$DOMAIN"
+      else
+        drush vset stage_file_proxy_origin "https://$DOMAIN"
+      fi
+    fi
+    echo ""
     echo "Make sure '192.168.33.10 $SITENAME.dev' exists in your local hosts file and then open http://$SITENAME.dev in your browser."
     echo "The local hosts file is located at /etc/hosts (MAC/BSD/Linux) or C:\Windows\System32\drivers\etc\hosts (Windows)."
     echo ""
