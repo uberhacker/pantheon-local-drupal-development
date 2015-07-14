@@ -11,6 +11,15 @@ if [ -z "$DRUSH" ]; then
   exit
 fi
 
+SITENAME=""
+if test $1; then
+  SITENAME=$1
+fi
+PROFILE=""
+if test $2; then
+  PROFILE=$2
+fi
+
 EMAIL=""
 PASSWORD=""
 if [ -f $HOME/.terminus_auth ]; then
@@ -77,35 +86,19 @@ if [ "$LOGGEDIN" == "You are not logged in." ]; then
   exit
 fi
 
-echo ""
-echo -n "Enter the Pantheon Site Name: "; read SITENAME
 if [ -z "$SITENAME" ]; then
-  exit
-fi
-VALID=no
-ORGS=$(terminus organizations list | cut -d$'\t' -f2)
-for ORG in $ORGS; do
-  if [ "$ORG" != "Id" ]; then
-    SITES=$(terminus organizations sites --org=$ORG | cut -d$'\t' -f1)
-    for SITE in $SITES; do
-      if [ "$SITE" != "Name" ]; then
-        if [ "$SITE" == "$SITENAME" ]; then
-          VALID=yes
-        fi
-      fi
-    done
+  echo ""
+  echo -n "Enter the Pantheon Site Name: "; read SITENAME
+  if [ -z "$SITENAME" ]; then
+    exit
   fi
-done
-if [ "$VALID" == "no" ]; then
-  echo ""
-  echo "$SITENAME is not a valid Pantheon Site Name."
-  echo ""
-  exit
 fi
 
 ID=$(terminus site info --site=$SITENAME --field=id)
 if [ -z "$ID" ]; then
-  echo "Unable to retrieve site id for $SITENAME."
+  echo ""
+  echo "$SITENAME is not a valid Pantheon Site Name."
+  echo ""
   exit
 fi
 
@@ -142,12 +135,17 @@ if [ -d /var/www/$SITENAME ]; then
     sudo a2ensite $SITENAME
     sudo service apache2 restart
   fi
-  echo ""
-  echo "The following install profiles are available:"
   PROFS=$(ls /var/www/$SITENAME/profiles)
-  echo $PROFS
-  echo ""
-  echo -n "Enter the install profile: "; read PROFILE
+  if [ -z "$PROFILE" ]; then
+    echo ""
+    echo "The following install profiles are available:"
+    echo $PROFS
+    echo ""
+    echo -n "Enter the install profile: "; read PROFILE
+    if [ -z "$PROFILE" ]; then
+      exit
+    fi
+  fi
   VALID=no
   for PROF in $PROFS; do
     if [ "$PROF" == "$PROFILE" ]; then
