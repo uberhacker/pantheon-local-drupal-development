@@ -111,7 +111,7 @@ EOF
     sed -i 's/^unset color_prompt/#unset color_prompt/g' .bashrc
     echo "alias ll='ls -lA'" >> .bash_aliases
     echo "alias grep='grep --color=auto'" >> .bash_aliases
-    echo "alias ip='ifconfig | grep \"inet \" | grep -v 127.0.0.1 | cut -d\" \" -f2'" >> .bash_aliases
+    echo "alias ip='ifconfig | grep \"inet \" | grep -v 127.0.0.1 | cut -d\":\" -f2 | cut -d\" \" -f1'" >> .bash_aliases
     echo "alias git-who='git log --oneline --pretty=format:\"%cn\" | sort | uniq'" >> .bash_aliases
     echo "alias composer-up='cd ~/.composer;composer update'" >> .bash_aliases
     echo "alias vim-up='cd ~/.vim;git submodule foreach git pull'" >> .bash_aliases
