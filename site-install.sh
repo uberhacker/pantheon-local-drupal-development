@@ -173,9 +173,20 @@ if [ -d /var/www/$SITENAME ]; then
     fi
     sudo chown vagrant:www-data /var/www/$SITENAME/sites/default/files
     sudo chmod g+w /var/www/$SITENAME/sites/default/files
+    sed -i "s/DATABASE/$DBNAME/g" /var/www/$SITENAME/sites/default/settings.php
+    sed -i "s/USERNAME/drupal/g" /var/www/$SITENAME/sites/default/settings.php
+    sed -i "s/PASSWORD/drupal/g" /var/www/$SITENAME/sites/default/settings.php
+    DB=$(terminus site backup get --site=jouer-cosmetics --env=dev --element=database --latest)
+    if [ ! -z "$DB" ]; then
+      curl --compress -o dev-$SITENAME.sql.gz $DB
+      gunzip dev-$SITENAME.sql.gz
+      drush sqlc < dev-$SITENAME.sql
+      #rm -f dev-$SITENAME.sql
+    fi
     #drush dl -n migrate migrate_extras coder devel devel_themer hacked redis simplehtmldom-7.x-1.12 stage_file_proxy
     #drush en -y migrate_extras coder devel_themer hacked redis stage_file_proxy
-    cd /var/www/$SITENAME
+    drush dl -n stage_file_proxy
+    drush en -y stage_file_proxy
     echo "Make sure '192.168.33.10 $SITENAME.dev' exists in your local hosts file and then open http://$SITENAME.dev in your browser."
     echo "The local hosts file is located at /etc/hosts (MAC/BSD/Linux) or C:\Windows\System32\drivers\etc\hosts (Windows)."
     echo ""
