@@ -73,6 +73,7 @@ Troubleshooting
 ---------------
 If you notice an error similar to the following:
 > ./hosts.sh: line 17: /C/Windows/System32/drivers/etc/hosts: Permission denied
+
 Make sure the hosts file is not read only.  Navigate to C:\Windows\System32\drivers\etc in File Explorer.  Right click on hosts, select Properties, uncheck the Read-only box next to Attributes: and then click OK.
 
 If you forgot to execute the first step: git config --global core.autocrlf false, you may not be able to execute git-config or site-install.  To fix, execute the following:
