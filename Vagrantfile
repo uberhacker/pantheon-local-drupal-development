@@ -80,7 +80,7 @@ Vagrant.configure(2) do |config|
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy all'
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy-php56 all'
     sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-php5 php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-php5 php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server exuberant-ctags vim
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
     curl -sS https://getcomposer.org/installer | php
     sudo mv composer.phar /usr/local/bin/composer
@@ -92,35 +92,42 @@ Vagrant.configure(2) do |config|
     composer global require drush/drush:dev-master
     composer global require drupal/coder
     composer global require squizlabs/PHP_CodeSniffer:\>=2
-    echo 'export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"' >> .bashrc
-    echo 'source $HOME/.composer/vendor/drush/drush/examples/example.bashrc' >> .bashrc
-    echo 'source $HOME/.composer/vendor/drush/drush/drush.complete.sh' >> .bashrc
-    echo 'source $HOME/.git-prompt.sh' >> .bashrc
-    echo 'source $HOME/.git-completion.bash' >> .bashrc
-    echo 'export GIT_PS1_SHOWDIRTYSTATE=1' >> .bashrc
-    cat <<"EOF" >> .bashrc
+cat << "EOF" >> .bashrc
+export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
+source $HOME/.composer/vendor/drush/drush/examples/example.bashrc
+source $HOME/.composer/vendor/drush/drush/drush.complete.sh
+source $HOME/.git-prompt.sh
+source $HOME/.git-completion.bash
+export GIT_PS1_SHOWDIRTYSTATE=1
 if [ "$(type -t __git_ps1)" ] && [ "$(type -t __drush_ps1)" ]; then
-  if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\\[\\033[01;32m\\]$(whoami)@\\h\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]$(__git_ps1 " (%s)")$(__drush_ps1 "[%s]")\\$ '
-  else
-    PS1='${debian_chroot:+($debian_chroot)}$(whoami)@\\h:\\w$(__git_ps1 " (%s)")$(__drush_ps1 "[%s]")\\$ '
-  fi
+    if [ "$color_prompt" = yes ]; then
+        PS1='${debian_chroot:+($debian_chroot)}\\[\\033[01;32m\\]$(whoami)@\\h\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]$(__git_ps1 " (%s)")$(__drush_ps1 "[%s]")\\$ '
+    else
+        PS1='${debian_chroot:+($debian_chroot)}$(whoami)@\\h:\\w$(__git_ps1 " (%s)")$(__drush_ps1 "[%s]")\\$ '
+    fi
 fi
+EOF
+cat << "EOF" >> .bash_aliases
+alias ll='ls -lA'
+alias la='ls -A'
+alias l='ls -CF'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias ip='ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d":" -f2 | cut -d" " -f1'
+alias git-who='git log --oneline --pretty=format:"%cn" | sort | uniq'
+alias composer-up='cd ~/.composer;composer update'
+alias vim-up='cd ~/.vim;git submodule foreach git pull'
+alias drupalcs="phpcs --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
+alias drupalcbf="phpcbf --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
+alias git-config='/vagrant/git-config.sh'
+alias restart-lamp='/vagrant/restart-lamp.sh'
+alias site-install='/vagrant/site-install.sh'
+alias vim-install='/vagrant/vim-install.sh'
+alias webmin-install='/vagrant/webmin-install.sh'
 EOF
     sed -i 's/^#force_color_prompt/force_color_prompt/g' .bashrc
     sed -i 's/^unset color_prompt/#unset color_prompt/g' .bashrc
-    echo "alias ll='ls -lA'" >> .bash_aliases
-    echo "alias grep='grep --color=auto'" >> .bash_aliases
-    echo "alias ip='ifconfig | grep \"inet \" | grep -v 127.0.0.1 | cut -d\":\" -f2 | cut -d\" \" -f1'" >> .bash_aliases
-    echo "alias git-who='git log --oneline --pretty=format:\"%cn\" | sort | uniq'" >> .bash_aliases
-    echo "alias composer-up='cd ~/.composer;composer update'" >> .bash_aliases
-    echo "alias vim-up='cd ~/.vim;git submodule foreach git pull'" >> .bash_aliases
-    echo 'alias drupalcs="phpcs --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"' >> .bash_aliases
-    echo 'alias drupalcbf="phpcbf --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"' >> .bash_aliases
-    echo 'alias git-config="/vagrant/git-config.sh"' >> .bash_aliases
-    echo 'alias restart-lamp="/vagrant/restart-lamp.sh"' >> .bash_aliases
-    echo 'alias site-install="/vagrant/site-install.sh"' >> .bash_aliases
-    echo 'alias webmin-install="/vagrant/webmin-install.sh"' >> .bash_aliases
     sudo chown -R vagrant:vagrant /home/vagrant
     sudo chown -R vagrant:vagrant /var/www
     source .bashrc
