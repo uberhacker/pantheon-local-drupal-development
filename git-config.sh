@@ -12,7 +12,7 @@ echo -n "Enter your email address: "; read EMAIL
 if [ -z "$EMAIL" ]; then
   exit
 fi
-git config --global user.name $NAME
+git config --global user.name "$NAME"
 git config --global user.email $EMAIL
 git config --global core.autocrlf input
 git config --global core.editor vim
