@@ -193,10 +193,10 @@ if [ -d /var/www/$SITENAME ]; then
     fi
     sudo chown vagrant:www-data /var/www/$SITENAME/sites/default/files
     sudo chmod g+w /var/www/$SITENAME/sites/default/files
-    sed -i "s/DATABASE/$DBNAME/g" /var/www/$SITENAME/sites/default/settings.php
-    sed -i "s/USERNAME/drupal/g" /var/www/$SITENAME/sites/default/settings.php
-    sed -i "s/PASSWORD/drupal/g" /var/www/$SITENAME/sites/default/settings.php
-    DB=$(terminus site backup get --site=jouer-cosmetics --env=dev --element=database --latest)
+    sudo sed -i "s/DATABASE/$DBNAME/g" /var/www/$SITENAME/sites/default/settings.php
+    sudo sed -i "s/USERNAME/drupal/g" /var/www/$SITENAME/sites/default/settings.php
+    sudo sed -i "s/PASSWORD/drupal/g" /var/www/$SITENAME/sites/default/settings.php
+    DB=$(terminus site backup get --site=$SITENAME --env=dev --element=database --latest)
     if [ ! -z "$DB" ]; then
       curl --compress -o dev-$SITENAME.sql.gz $DB
       gunzip dev-$SITENAME.sql.gz
