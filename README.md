@@ -66,6 +66,9 @@ To list hosts:
 
 Optional
 --------
+Install vim configured for Drupal:
+> vagrant@debian ~$ vim-install
+
 Install webmin:
 > vagrant@debian ~$ webmin-install
 
