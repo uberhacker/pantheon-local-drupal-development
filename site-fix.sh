@@ -14,5 +14,9 @@ if test $1; then
   sudo chmod -R g+w sites/default/files
   drush rr
 else
+  echo ""
+  echo "Purpose: Repairs the site database and file permissions"
+  echo ""
   echo "Usage: $0 site where site is a valid Apache virtual host or Pantheon Site Name"
+  echo ""
 fi
