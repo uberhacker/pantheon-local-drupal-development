@@ -122,6 +122,7 @@ alias drupalcs="phpcs --standard=$HOME/.composer/vendor/drupal/coder/coder_sniff
 alias drupalcbf="phpcbf --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias git-config='/vagrant/git-config.sh'
 alias restart-lamp='/vagrant/restart-lamp.sh'
+alias site-fix='/vagrant/site-fix.sh'
 alias site-install='/vagrant/site-install.sh'
 alias vim-install='/vagrant/vim-install.sh'
 alias webmin-install='/vagrant/webmin-install.sh'
