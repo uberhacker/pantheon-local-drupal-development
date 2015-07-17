@@ -124,6 +124,7 @@ alias git-config='/vagrant/git-config.sh'
 alias restart-lamp='/vagrant/restart-lamp.sh'
 alias site-fix='/vagrant/site-fix.sh'
 alias site-install='/vagrant/site-install.sh'
+alias site-restore-db='/vagrant/site-restore-db.sh'
 alias vim-install='/vagrant/vim-install.sh'
 alias webmin-install='/vagrant/webmin-install.sh'
 EOF

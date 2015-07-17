@@ -61,6 +61,12 @@ Maintenance
 To restart the LAMP stack:
 > vagrant@debian:~$ restart-lamp
 
+To repair the database and file permissions:
+> vagrant@debian:~$ site-fix *site*
+
+To restore the database back to the state of the initial site install:
+> vagrant@debian:~$ site-restore-db *site*
+
 To list hosts:
 > $ hosts.sh list
 
@@ -82,4 +88,4 @@ Make sure the hosts file is not read only.  Navigate to C:\Windows\System32\driv
 If you forgot to execute the first step: git config --global core.autocrlf false, you may not be able to execute git-config or site-install.  To fix, execute the following:
 > vagrant@debian:~$ dos2unix /vagrant/git-config.sh
 
-> vagrant@debain:~$ dos2unix /vagrant/site-install.sh
+> vagrant@debian:~$ dos2unix /vagrant/site-install.sh
