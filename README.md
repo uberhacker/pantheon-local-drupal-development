@@ -64,6 +64,10 @@ To restart the LAMP stack:
 To repair the database and file permissions:
 > vagrant@debian:~$ site-fix *site*
 
+To display the Apache logs:
+> vagrant@debian:~$ site-log *site* [access|error] [less|tail]
+If the second or third arguments are omitted, the default values are error and tail.
+
 To restore the database back to the state of the initial site install:
 > vagrant@debian:~$ site-restore-db *site*
 
