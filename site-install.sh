@@ -153,25 +153,34 @@ if [ -d /var/www/$SITENAME ]; then
     # Add synced folder
     FOLDER=$(grep -n "config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" /vagrant/Vagrantfile)
     if [ -z "$FOLDER" ]; then
-      POS=$(grep -n '# config.vm.synced_folder "../data", "/vagrant_data"' /vagrant/Vagrantfile | cut -d':' -f1)
-      head -$POS /vagrant/Vagrantfile > /tmp/$SITENAME
-      echo "  config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" >> /tmp/$SITENAME
-      tail -$(($(cat /vagrant/Vagrantfile | wc -l)-$POS)) /vagrant/Vagrantfile >> /tmp/$SITENAME
-      sudo mv -f /tmp/$SITENAME /vagrant/Vagrantfile
-      echo ""
-      echo "Synced folder configured from /var/www/$SITENAME to ../$SITENAME."
-      echo ""
-      echo "Before performing an installation with site-install, execute the following:"
-      echo ""
-      echo "vagrant@debian:~$ exit"
-      echo "$ mkdir ../$SITENAME"
-      echo "$ vagrant reload"
-      echo "$ vagrant ssh"
-      echo "vagrant@debian:~$ site-install $SITENAME"
-      echo ""
-      echo "Otherwise, the next time the VM is loaded with vagrant up, the existing site files will be removed."
-      echo ""
-      exit
+      echo -n "Do you want to enable synced folders? (Y/n): "; read -n 1 SYNC
+      if [ -z "$SYNC" ]; then
+        SYNC=y
+      fi
+      if [ "$SYNC" == "Y" ]; then
+        SYNC=y
+      fi
+      if [ "$SYNC" == "y" ]; then
+        POS=$(grep -n '# config.vm.synced_folder "../data", "/vagrant_data"' /vagrant/Vagrantfile | cut -d':' -f1)
+        head -$POS /vagrant/Vagrantfile > /tmp/$SITENAME
+        echo "  config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" >> /tmp/$SITENAME
+        tail -$(($(cat /vagrant/Vagrantfile | wc -l)-$POS)) /vagrant/Vagrantfile >> /tmp/$SITENAME
+        sudo mv -f /tmp/$SITENAME /vagrant/Vagrantfile
+        echo ""
+        echo "Synced folder configured from /var/www/$SITENAME to ../$SITENAME."
+        echo ""
+        echo "Before performing an installation with site-install, execute the following:"
+        echo ""
+        echo "vagrant@debian:~$ exit"
+        echo "$ mkdir ../$SITENAME"
+        echo "$ vagrant reload"
+        echo "$ vagrant ssh"
+        echo "vagrant@debian:~$ site-install $SITENAME"
+        echo ""
+        echo "Otherwise, the next time the VM is loaded with vagrant up, the existing site files will be removed."
+        echo ""
+        exit
+      fi
     fi
   fi
   if [ ! -f /etc/apache2/sites-enabled/$SITENAME ]; then
