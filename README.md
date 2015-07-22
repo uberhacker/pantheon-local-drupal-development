@@ -99,17 +99,26 @@ Tips
 ----
 To configure redis:
 > vagrant@debian:~$ cd /var/www/*site*
+
 > vagrant@debian:~$ drush en redis -y
 
 Add the following to settings.php:
 > // Use Redis for caching.
+
 > $redis_path = 'sites/all/modules/contrib/redis';
+
 > $conf['redis_client_interface'] = 'PhpRedis';
+
 > $conf['cache_backends'][] = $redis_path . '/redis.autoload.inc';
+
 > $conf['cache_default_class'] = 'Redis_Cache';
+
 > // Do not use Redis for cache_form (no performance difference).
+
 > $conf['cache_class_cache_form'] = 'DrupalDatabaseCache';
+
 > // Use Redis for Drupal locks (semaphore).
+
 > $conf['lock_inc'] = $redis_path . '/redis.lock.inc';
 
 Change $redis_path to match your environment path.
