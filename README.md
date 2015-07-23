@@ -48,13 +48,15 @@ Once the VM has been provisioned, if you want to create additional sites, simply
 
 > $ vagrant ssh
 
-> vagrant@debian:~$ site-install *site* *profile* **Replace *site* with the Pantheon Site Name and *profile* with the Drupal install profile**
+> vagrant@debian:~$ site-install *site* *profile* *multisite*
+
+**Replace *site* with the Pantheon Site Name, *profile* with the Drupal install profile and *multisite* with the Drupal multisite domain**
 
 > vagrant@debian:~$ exit
 
 > $ hosts.sh add *site*
 
-On site-install, if you don't provide *site* or *profile*, you will be prompted to enter the appropriate values.
+On site-install, if you don't provide *site*, *profile* or *multisite*, you will be prompted to enter the appropriate values if needed.
 
 Maintenance
 -----------
