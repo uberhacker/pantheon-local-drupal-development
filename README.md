@@ -1,10 +1,10 @@
 Introduction
 ------------
-The purpose of this project is to create a useful local development environment to build Drupal sites hosted on Pantheon.  Since the infrastructure is built on VirtualBox, this configuration can work on virtually any operating system.  The entire LAMP stack is installed and configured.  Drupal installations are fully automated based on existing Pantheon Site Names.  This includes Apache virtual hosts, PHP configuration, MySQL databases and user permissions, and Drupal site installs via installation profiles.
+The purpose of this project is to create a useful local development environment to build Drupal sites hosted on Pantheon.  Since the infrastructure is built on VirtualBox, this configuration can work on virtually any host operating system.  The entire LAMP stack is installed and configured.  Drupal installations are fully automated based on existing Pantheon Site Names.  This includes Apache virtual hosts, PHP configuration, MySQL databases and user permissions, and Drupal site installs via installation profiles.
 
 Prerequisites
 -------------
-Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads). **Tested with version 4.3.30.  Version 5.0 is untested and may cause issues.**
+Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
 
 Install [VirtualBox Extension Pack](https://www.virtualbox.org/wiki/Downloads).
 
@@ -17,7 +17,11 @@ Installation
 Open Terminal (MAC/BSD/Linux) or Git Bash (Windows).  Windows users should run as administrator.
 
 See [Configure Applications to Always Run as an Administrator](https://technet.microsoft.com/en-us/magazine/ff431742.aspx).
+
+Although not necessary, if you want to open VirtualBox, you should also run as administrator.
+
 **Replace *site* with the Pantheon Site Name.**
+
 > $ git config --global core.autocrlf false  **This step is important**
 
 > $ git clone https://github.com/uberhacker/pantheon-local-drupal-development.git
@@ -79,6 +83,9 @@ To list hosts:
 
 Optional
 --------
+Install phpMyAdmin:
+> vagrant@debian ~$ phpmyadmin-install
+
 Install vim configured for Drupal:
 > vagrant@debian ~$ vim-install
 
@@ -124,3 +131,22 @@ Add the following to settings.php:
 > $conf['lock_inc'] = $redis_path . '/redis.lock.inc';
 
 Change $redis_path to match your environment path.
+
+If you want to reinstall a site using site-install and you have enabled synced folders, you should clear out your synced folder locally beforehand, otherwise you may notice errors when the script attempts to remove existing files.
+
+Faq
+---
+
+Q. Pantheon uses nginx as the web server. Why do you use Apache instead?
+
+A. I may plan to incorporate nginx in future releases. For now, Apache works well for development and I find it easier to configure.
+
+
+Q. Why did you choose Debian instead of Ubuntu or CentOS?
+
+A. This is a very good question. I felt Debian was lightweight and included everything I needed for a barebones development environment I could build around.  I also figured it would be easier to upgrade without having to reconfigure or reinstall the entire operating system.
+
+
+Q. Debian 8 (aka jessie) was released recently. Why did you choose the older Debian 7 (aka wheezy) release?
+
+A. I may plan to use Debian 8 in a future release. When I first started this project, the latest release was Debian 7 and I wasn't familiar with the differences in Debian 8 yet.
