@@ -126,6 +126,7 @@ alias site-fix='/vagrant/site-fix.sh'
 alias site-install='/vagrant/site-install.sh'
 alias site-log='/vagrant/site-log.sh'
 alias site-restore-db='/vagrant/site-restore-db.sh'
+alias phpmyadmin-install='/vagrant/phpmyadmin-install.sh'
 alias vim-install='/vagrant/vim-install.sh'
 alias webmin-install='/vagrant/webmin-install.sh'
 EOF
