@@ -92,6 +92,9 @@ Install vim configured for Drupal:
 Install webmin:
 > vagrant@debian ~$ webmin-install
 
+Install codespell:
+> vagrant@debian ~$ codespell-install
+
 Troubleshooting
 ---------------
 If you notice an error similar to the following:
