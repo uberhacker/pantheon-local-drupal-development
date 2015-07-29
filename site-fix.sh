@@ -9,9 +9,6 @@ if test $1; then
     drush dl registry_rebuild -y
     drush cc drush
   fi
-  cd /var/www/$SITENAME
-  sudo chown -R vagrant:www-data sites/default/files
-  sudo chmod -R g+w sites/default/files
 
   # Set multisite
   MULTISITES=""
@@ -53,6 +50,9 @@ if test $1; then
       exit
     fi
   fi
+  cd /var/www/$SITENAME
+  sudo chown -R vagrant:www-data sites/$MULTISITE/files
+  sudo chmod -R g+w sites/$MULTISITE/files
   drush -l $MULTISITE rr
 else
   echo ""
