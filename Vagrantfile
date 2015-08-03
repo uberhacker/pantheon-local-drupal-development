@@ -47,6 +47,8 @@ Vagrant.configure(2) do |config|
     vb.name = "debian"
     # Display the VirtualBox GUI when booting the machine
     # vb.gui = true
+    # Customize the number of CPUs on the VM:
+    vb.cpus = "1"
     # Customize the amount of memory on the VM:
     vb.memory = "2048"
   end
