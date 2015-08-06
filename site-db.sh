@@ -1,16 +1,11 @@
 #!/bin/bash
 if test $1; then
+  if [ ! -d "/var/www/$1" ]; then
+    echo "$1 is not a valid site."
+    exit
+  fi
   SITENAME=$1
-  if [ ! -d /var/www/$SITENAME ]; then
-    echo "$SITENAME is not a valid site."
-    exit
-  fi
-  if [ ! -f /var/www/$SITENAME/dev-$SITENAME.sql ]; then
-    echo "Database dump file dev-$SITENAME.sql does not exist."
-    exit
-  fi
-  cd /var/www/$SITENAME
-
+  ENV=dev
   # Set multisite
   MULTISITES=""
   DEFAULTSITE="default"
@@ -51,10 +46,16 @@ if test $1; then
       exit
     fi
   fi
-  drush -l $MULTISITE sqlc < dev-$SITENAME.sql
+  cd /var/www/$SITENAME
+  DB="$ENV-$SITENAME.sql"
+  rm -f $DB $DB.gz
+  echo "Downloading $DB ..."
+  curl --compress -o $DB.gz $(terminus site backup get --site=$SITENAME --env=$ENV --element=database --latest) && gunzip $DB.gz
+  echo "Loading $DB ..."
+  drush -l $MULTISITE sqlc < $DB
 else
   echo ""
-  echo "Purpose: Restores the database back to the state of the initial site install"
+  echo "Purpose: Downloads the latest database and uploads to your local database"
   echo ""
   echo "Usage: $0 site where site is a valid Apache virtual host or Pantheon Site Name"
   echo ""
