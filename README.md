@@ -75,8 +75,8 @@ To display the Apache logs:
 
 If the second or third arguments are omitted, the default values are error and tail.
 
-To restore the database back to the state of the initial site install:
-> vagrant@debian:~$ site-restore-db *site*
+To download the latest database and upload to your local database:
+> vagrant@debian:~$ site-db *site*
 
 To list hosts:
 > $ hosts.sh list
