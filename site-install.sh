@@ -178,9 +178,21 @@ if [ -d /var/www/$SITENAME ]; then
         SYNC=y
       fi
       if [ "$SYNC" == "y" ]; then
+        echo -n "Do you want to enable NFS? (Y/n): "; read -n 1 NFS
+        echo $'\n'
+        if [ -z "$NFS" ]; then
+          NFS=y
+        fi
+        if [ "$NFS" == "Y" ]; then
+          NFS=y
+        fi
         POS=$(grep -n '# config.vm.synced_folder "../data", "/vagrant_data"' /vagrant/Vagrantfile | cut -d':' -f1)
         head -$POS /vagrant/Vagrantfile > /tmp/$SITENAME
-        echo "  config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" >> /tmp/$SITENAME
+        if [ "$NFS" == "y" ]; then
+          echo "  config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\", type: \"nfs\"" >> /tmp/$SITENAME
+        else
+          echo "  config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" >> /tmp/$SITENAME
+        fi
         tail -$(($(cat /vagrant/Vagrantfile | wc -l)-$POS)) /vagrant/Vagrantfile >> /tmp/$SITENAME
         sudo mv -f /tmp/$SITENAME /vagrant/Vagrantfile
         echo ""
@@ -190,6 +202,9 @@ if [ -d /var/www/$SITENAME ]; then
         echo ""
         echo "vagrant@debian:~$ exit"
         echo "$ mkdir ../$SITENAME"
+        if [ "$NFS" == "y" ]; then
+	  echo "$ vagrant plugin install vagrant-winnfsd (Windows host only)"
+	fi
         echo "$ vagrant reload"
         echo "$ vagrant ssh"
         echo "vagrant@debian:~$ site-install $SITENAME"
