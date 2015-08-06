@@ -51,8 +51,22 @@ if test $1; then
     fi
   fi
   cd /var/www/$SITENAME
+  # Make sure the directory is writable by Apache so files can be saved.
   sudo chown -R vagrant:www-data sites/$MULTISITE/files
   sudo chmod -R g+w sites/$MULTISITE/files
+  # Make sure the directory is writable by Apache so features can be exported.
+  if [ -d "/var/www/$SITENAME/sites/$MULTISITE/features" ]; then
+    sudo chown -R vagrant:www-data sites/$MULTISITE/features
+    sudo chmod -R g+w sites/$MULTISITE/features
+  fi
+  if [ -d "/var/www/$SITENAME/sites/$MULTISITE/modules/features" ]; then
+    sudo chown -R vagrant:www-data sites/$MULTISITE/modules/features
+    sudo chmod -R g+w sites/$MULTISITE/modules/features
+  fi
+  if [ -d "/var/www/$SITENAME/sites/$MULTISITE/modules/custom/features" ]; then
+    sudo chown -R vagrant:www-data sites/$MULTISITE/modules/custom/features
+    sudo chmod -R g+w sites/$MULTISITE/modules/custom/features
+  fi
   drush -l $MULTISITE rr
 else
   echo ""
