@@ -1,12 +1,116 @@
 #!/bin/bash
 if test $1; then
+  # Check if the site directory exists.
   if [ ! -d "/var/www/$1" ]; then
     echo "$1 is not a valid site."
     exit
   fi
   SITENAME=$1
   ENV=dev
+
+  # Check for prerequisites
+  TERMINUS=$(which terminus)
+  if [ -z "$TERMINUS" ]; then
+    echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
+    exit
+  fi
+  DRUSH=$(which drush)
+  if [ -z "$DRUSH" ]; then
+    echo "Drush is not installed.  See http://www.drush.org/en/master/install."
+    exit
+  fi
+
+  # Retrieve stored Terminus credentials
+  EMAIL=""
+  PASSWORD=""
+  HTTPUSER=""
+  HTTPPASS=""
+  if [ -f $HOME/.terminus_auth ]; then
+    while read line; do
+      for pair in $line; do
+        set -- $(echo $pair | tr '=' ' ')
+        if [ "$1" == "email" ]; then
+          EMAIL=${line#"$1="}
+        fi
+        if [ "$1" == "password" ]; then
+          PASSWORD=${line#"$1="}
+        fi
+        if [ "$1" == "httpuser" ]; then
+          HTTPUSER=${line#"$1="}
+        fi
+        if [ "$1" == "httppass" ]; then
+          HTTPPASS=${line#"$1="}
+        fi
+      done
+    done < $HOME/.terminus_auth
+  fi
+
+  # Terminus authentication prompts
+  LOGGEDIN=$(terminus auth whoami)
+  if [ "$LOGGEDIN" == "You are not logged in." ]; then
+    if [ -z "$EMAIL" ]; then
+      echo -n "Enter your Pantheon email address: "; read EMAIL
+      if [ -z "$EMAIL" ]; then
+        exit
+      else
+        echo -n "Save email address? (Y/n): "; read -n 1 SAVEMAIL
+        if [ -z "$SAVEMAIL" ]; then
+          SAVEMAIL=y
+        fi
+        if [ "$SAVEMAIL" == "Y" ]; then
+          SAVEMAIL=y
+        fi
+        if [ "$SAVEMAIL" == "y" ]; then
+          echo "email=$EMAIL" > $HOME/.terminus_auth
+        fi
+      fi
+    fi
+    if [ -z "$PASSWORD" ]; then
+      echo -n "Enter your Pantheon password: "; read -s PASSWORD
+      if [ -z "$PASSWORD" ]; then
+        exit
+      else
+        echo -n "Save password? (y/N): "; read -n 1 SAVEPASS
+        echo $'\n'
+        if [ "$SAVEPASS" == "Y" ]; then
+          SAVEPASS=y
+        fi
+        if [ "$SAVEPASS" == "y" ]; then
+          echo "password=$PASSWORD" >> $HOME/.terminus_auth
+        fi
+      fi
+    fi
+    if [ -z "$HTTPUSER" ]; then
+      echo -n "Enter the HTTP Basic Authentication username: "; read HTTPUSER
+      if [ ! -z "$HTTPUSER" ]; then
+        echo "httpuser=$HTTPUSER" >> $HOME/.terminus_auth
+      fi
+    fi
+    if [ -z "$HTTPPASS" ]; then
+      echo -n "Enter the HTTP Basic Authentication password: "; read -s HTTPPASS
+      if [ ! -z "$HTTPPASS" ]; then
+        echo "httppass=$HTTPPASS" >> $HOME/.terminus_auth
+      fi
+    fi
+    # Change email to match commits to Pantheon
+    GITEMAIL=$(git config --get user.email)
+    if [ "$GITEMAIL" != "$EMAIL" ]; then
+      git config --global user.email $EMAIL
+    fi
+    terminus auth login $EMAIL --password="$PASSWORD"
+  fi
+
+  # Remove saved credentials if unable to login
+  LOGGEDIN=$(terminus auth whoami)
+  if [ "$LOGGEDIN" == "You are not logged in." ]; then
+    if [ -f $HOME/.terminus_auth ]; then
+      rm -f $HOME/.terminus_auth
+    fi
+    exit
+  fi
+
   # Set multisite
+  MULTISITE=""
   MULTISITES=""
   DEFAULTSITE="default"
   cd /var/www/$SITENAME/sites
@@ -46,13 +150,32 @@ if test $1; then
       exit
     fi
   fi
+  if [ ! -z "$MULTISITE" ]; then
+    DRUSH="$DRUSH -l $MULTISITE"
+  fi
   cd /var/www/$SITENAME
   DB="$ENV-$SITENAME.sql"
   rm -f $DB $DB.gz
   echo "Downloading $DB ..."
   curl --compress -o $DB.gz $(terminus site backup get --site=$SITENAME --env=$ENV --element=database --latest) && gunzip $DB.gz
   echo "Loading $DB ..."
-  drush -l $MULTISITE sqlc < $DB
+  $DRUSH sqlc < $DB
+  # Make sure the Drupal admin user login is admin/admin
+  $DRUSH sqlq "update users set name = 'admin' where uid = 1"
+  $DRUSH upwd admin --password=admin
+
+  # Enable the proxy for files
+  $DRUSH dl -n stage_file_proxy
+  $DRUSH en -y stage_file_proxy
+  DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=$ENV) | cut -d" " -f4)
+  if [ ! -z "$DOMAIN" ]; then
+    $DRUSH vset stage_file_proxy_hotlink 1
+    if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
+      $DRUSH vset stage_file_proxy_origin "https://$HTTPUSER:$HTTPPASS@$DOMAIN"
+    else
+      $DRUSH vset stage_file_proxy_origin "https://$DOMAIN"
+    fi
+  fi
 else
   echo ""
   echo "Purpose: Downloads the latest database and uploads to your local database"
