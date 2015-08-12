@@ -156,25 +156,52 @@ if test $1; then
   cd /var/www/$SITENAME
   DB="$ENV-$SITENAME.sql"
   rm -f $DB $DB.gz
-  echo "Downloading $DB ..."
+  echo "Downloading the latest database backup to $DB ..."
   curl --compress -o $DB.gz $(terminus site backup get --site=$SITENAME --env=$ENV --element=database --latest) && gunzip $DB.gz
+  $DRUSH sql-drop -y
   echo "Loading $DB ..."
   $DRUSH sqlc < $DB
   # Make sure the Drupal admin user login is admin/admin
   $DRUSH sqlq "update users set name = 'admin' where uid = 1"
   $DRUSH upwd admin --password=admin
+  if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
+    drush dl registry_rebuild -y
+    drush cc drush
+  fi
+  $DRUSH rr
 
-  # Enable the proxy for files
-  $DRUSH dl -n stage_file_proxy
-  $DRUSH en -y stage_file_proxy
-  DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=$ENV) | cut -d" " -f4)
-  if [ ! -z "$DOMAIN" ]; then
-    $DRUSH vset stage_file_proxy_hotlink 1
-    if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
-      $DRUSH vset stage_file_proxy_origin "https://$HTTPUSER:$HTTPPASS@$DOMAIN"
-    else
-      $DRUSH vset stage_file_proxy_origin "https://$DOMAIN"
+  # Prompt to enable Stage File Proxy
+  echo -n "Would you like to enable Stage File Proxy? (Y/n): "; read -n 1 PROXY
+  echo ""
+  if [ -z "$PROXY" ]; then
+    PROXY=y
+  fi
+  if [ "$PROXY" == "Y" ]; then
+    PROXY=y
+  fi
+  if [ "$PROXY" == "y" ]; then
+    $DRUSH dl -n stage_file_proxy
+    $DRUSH en -y stage_file_proxy
+    DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
+    if [ ! -z "$DOMAIN" ]; then
+      $DRUSH vset stage_file_proxy_hotlink 1
+      if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
+        $DRUSH vset stage_file_proxy_origin "https://$HTTPUSER:$HTTPPASS@$DOMAIN"
+      else
+        $DRUSH vset stage_file_proxy_origin "https://$DOMAIN"
+      fi
     fi
+  else
+    echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
+    cd /var/www/$SITENAME/sites/$MULTISITE/files
+    FILES=$(terminus site backup get --site=$SITENAME --env=dev --element=files --latest)
+    curl --compress -o dev-$SITENAME-files.tar.gz $FILES
+    tar zxvf dev-$SITENAME-files.tar.gz
+    cp -r files_dev/* .
+    rm -rf files_dev/
+    cd ..
+    sudo chown -R vagrant:www-data files/
+    sudo chmod -R g+w files/
   fi
 else
   echo ""
