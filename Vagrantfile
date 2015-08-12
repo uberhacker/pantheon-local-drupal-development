@@ -88,7 +88,7 @@ Vagrant.configure(2) do |config|
     sudo mv composer.phar /usr/local/bin/composer
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o /home/vagrant/.git-prompt.sh
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /home/vagrant/.git-completion.bash
-    sudo curl https://github.com/pantheon-systems/cli/releases/download/0.5.5/terminus.phar -L -o /usr/local/bin/terminus && sudo chmod +x /usr/local/bin/terminus
+    sudo curl https://github.com/pantheon-systems/cli/releases/download/0.6.0/terminus.phar -L -o /usr/local/bin/terminus && sudo chmod +x /usr/local/bin/terminus
     export HOME=/home/vagrant
     export COMPOSER_HOME=/home/vagrant/.composer
     composer global require drush/drush:dev-master
