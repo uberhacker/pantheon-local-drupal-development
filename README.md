@@ -109,6 +109,12 @@ If you forgot to execute the first step: git config --global core.autocrlf false
 
 Tips
 ----
+
+To check your code:
+> vagrant@debian:~$ cd /path/to/custom/code/directory
+
+> vagrant@debain:~$ drupalcs my_custom_module/
+
 To configure redis:
 > vagrant@debian:~$ cd /var/www/*site*
 
