@@ -372,30 +372,62 @@ EOF
     # Download and load the latest database backup if it exists
     DB=$(terminus site backup get --site=$SITENAME --env=dev --element=database --latest)
     if [ ! -z "$DB" ]; then
-      echo "Downloading $DB to dev-$SITENAME.sql.gz..."
+      echo "Downloading latest database backup to dev-$SITENAME.sql.gz..."
       curl --compress -o dev-$SITENAME.sql.gz $DB
       gunzip dev-$SITENAME.sql.gz
+      $DRUSH sql-drop -y
       echo "Loading dev-$SITENAME.sql..."
       $DRUSH sqlc < dev-$SITENAME.sql
       #rm -f dev-$SITENAME.sql
       # Make sure the Drupal admin user login is admin/admin
       $DRUSH sqlq "update users set name = 'admin' where uid = 1"
       $DRUSH upwd admin --password=admin
+      if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
+        drush dl registry_rebuild -y
+        drush cc drush
+      fi
+      $DRUSH rr
     fi
 
     # Enable development modules
     #$DRUSH dl -n migrate migrate_extras coder devel devel_themer hacked redis simplehtmldom-7.x-1.12 stage_file_proxy
     #$DRUSH en -y migrate_extras coder devel_themer hacked redis stage_file_proxy
-    $DRUSH dl -n stage_file_proxy
-    $DRUSH en -y stage_file_proxy
-    DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
-    if [ ! -z "$DOMAIN" ]; then
-      $DRUSH vset stage_file_proxy_hotlink 1
-      if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
-        $DRUSH vset stage_file_proxy_origin "https://$HTTPUSER:$HTTPPASS@$DOMAIN"
-      else
-        $DRUSH vset stage_file_proxy_origin "https://$DOMAIN"
+
+    # Disable unused/unwanted modules
+    $DRUSH dis -y overlay
+
+    # Prompt to enable Stage File Proxy
+    echo -n "Would you like to enable Stage File Proxy? (Y/n): "; read -n 1 PROXY
+    echo ""
+    if [ -z "$PROXY" ]; then
+      PROXY=y
+    fi
+    if [ "$PROXY" == "Y" ]; then
+      PROXY=y
+    fi
+    if [ "$PROXY" == "y" ]; then
+      $DRUSH dl -n stage_file_proxy
+      $DRUSH en -y stage_file_proxy
+      DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
+      if [ ! -z "$DOMAIN" ]; then
+        $DRUSH vset stage_file_proxy_hotlink 1
+        if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
+          $DRUSH vset stage_file_proxy_origin "https://$HTTPUSER:$HTTPPASS@$DOMAIN"
+        else
+          $DRUSH vset stage_file_proxy_origin "https://$DOMAIN"
+        fi
       fi
+    else
+      echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
+      cd /var/www/$SITENAME/sites/$MULTISITE/files
+      FILES=$(terminus site backup get --site=$SITENAME --env=dev --element=files --latest)
+      curl --compress -o dev-$SITENAME-files.tar.gz $FILES
+      tar zxvf dev-$SITENAME-files.tar.gz
+      cp -r files_dev/* .
+      rm -rf files_dev/
+      cd ..
+      sudo chown -R vagrant:www-data files/
+      sudo chmod -R g+w files/
     fi
 
     # Output final message
