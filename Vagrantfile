@@ -74,6 +74,9 @@ Vagrant.configure(2) do |config|
     sudo service hostname.sh start
     sudo apt-get update
     sudo apt-get install python-software-properties -y
+    sudo add-apt-repository 'deb http://mirrors.kernel.org/debian wheezy main contrib non-free'
+    sudo add-apt-repository 'deb http://security.debian.org/ wheezy/updates main contrib non-free'
+    sudo add-apt-repository 'deb http://mirrors.kernel.org/debian wheezy-updates main contrib non-free'
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
     sudo add-apt-repository 'deb http://ftp.utexas.edu/mariadb/repo/10.0/debian wheezy main'
     wget http://www.dotdeb.org/dotdeb.gpg
@@ -82,7 +85,7 @@ Vagrant.configure(2) do |config|
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy all'
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy-php56 all'
     sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-php5 php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server exuberant-ctags vim
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-fastcgi php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server exuberant-ctags vim
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
     curl -sS https://getcomposer.org/installer | php
     sudo mv composer.phar /usr/local/bin/composer
@@ -149,7 +152,15 @@ EOF
     sudo sed -i 's/^display_errors = Off/display_errors = On/g' php.ini
     sudo sed -i 's/^display_startup_errors = Off/display_startup_errors = On/g' php.ini
     sudo sed -i 's/^track_errors = Off/track_errors = On/g' php.ini
-    sudo a2enmod php5 rewrite
+sudo sh -c 'cat << "EOF" > /etc/apache2/mods-enabled/fastcgi.conf
+<IfModule mod_fastcgi.c>
+ AddType application/x-httpd-fastphp5 .php
+ Action application/x-httpd-fastphp5 /php5-fcgi
+ Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
+ FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
+</IfModule>
+EOF'
+    sudo a2enmod actions php5 rewrite
     sudo a2dissite default
     sudo service php5-fpm restart
     sudo service redis-server restart
