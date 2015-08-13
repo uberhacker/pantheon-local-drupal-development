@@ -152,6 +152,7 @@ EOF
     sudo sed -i 's/^display_errors = Off/display_errors = On/g' php.ini
     sudo sed -i 's/^display_startup_errors = Off/display_startup_errors = On/g' php.ini
     sudo sed -i 's/^track_errors = Off/track_errors = On/g' php.ini
+    sudo sed -i 's/^;always_populate_raw_post_data = -1/always_populate_raw_post_data = -1/g' php.ini
 sudo sh -c 'cat << "EOF" > /etc/apache2/mods-enabled/fastcgi.conf
 <IfModule mod_fastcgi.c>
  AddType application/x-httpd-fastphp5 .php
