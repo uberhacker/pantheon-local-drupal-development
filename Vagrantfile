@@ -135,6 +135,7 @@ alias phpmyadmin-install='/vagrant/phpmyadmin-install.sh'
 alias vim-install='/vagrant/vim-install.sh'
 alias webmin-install='/vagrant/webmin-install.sh'
 alias codespell-install='/vagrant/codespell-install.sh'
+alias compass-install='/vagrant/compass-install.sh'
 EOF
     sed -i 's/^#force_color_prompt/force_color_prompt/g' .bashrc
     sed -i 's/^unset color_prompt/#unset color_prompt/g' .bashrc
