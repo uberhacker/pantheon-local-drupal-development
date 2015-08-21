@@ -95,6 +95,9 @@ Install webmin:
 Install codespell:
 > vagrant@debian ~$ codespell-install
 
+Install compass:
+> vagrant@debian ~$ compass-install
+
 Troubleshooting
 ---------------
 If you notice an error similar to the following:
