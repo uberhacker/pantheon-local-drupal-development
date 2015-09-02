@@ -98,6 +98,9 @@ Install codespell:
 Install compass:
 > vagrant@debian ~$ compass-install
 
+Install less:
+> vagrant@debian ~$ less-install
+
 Troubleshooting
 ---------------
 If you notice an error similar to the following:
