@@ -32,6 +32,8 @@ Although not necessary, if you want to open VirtualBox, you should also run as a
 
 > $ vagrant ssh
 
+> vagrant@debian:~$ ssh-config
+
 > vagrant@debian:~$ git-config (follow prompts)
 
 > vagrant@debian:~$ site-install (follow prompts)
@@ -101,6 +103,9 @@ Install compass:
 Install less:
 > vagrant@debian ~$ less-install
 
+Install xhprof:
+> vagrant@debian ~$ xhprof-install
+
 Troubleshooting
 ---------------
 If you notice an error similar to the following:
@@ -115,7 +120,6 @@ If you forgot to execute the first step: git config --global core.autocrlf false
 
 Tips
 ----
-
 To check your code:
 > vagrant@debian:~$ cd /path/to/custom/code/directory
 
@@ -151,7 +155,6 @@ If you want to reinstall a site using site-install and you have enabled synced f
 
 Faq
 ---
-
 Q. Pantheon uses nginx as the web server. Why do you use Apache instead?
 
 A. I may plan to incorporate nginx in future releases. For now, Apache works well for development and I find it easier to configure.
