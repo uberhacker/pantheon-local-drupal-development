@@ -286,6 +286,11 @@ if [ -d /var/www/$SITENAME ]; then
     fi
   fi
 
+  # Replace placeholder credentials if needed
+  SETTINGS="/var/www/$SITENAME/sites/$MULTISITE/settings.php"
+  sed -i "s/DATABASE/$DBNAME/g" $SETTINGS
+  sed -i "s/USERNAME/drupal/g" $SETTINGS
+  sed -i "s/PASSWORD/drupal/g" $SETTINGS
   # Perform the drush site install
   cd /var/www/$SITENAME
   drush site-install $PROFILE --account-name=admin --account-pass=admin --db-url=mysql://drupal:drupal@localhost/$DBNAME --site-name=$SITENAME --sites-subdir=$MULTISITE -v -y
@@ -312,12 +317,6 @@ if [ -d /var/www/$SITENAME ]; then
       fi
     done
 
-    # Replace placeholder credentials if needed
-    SETTINGS="/var/www/$SITENAME/sites/$MULTISITE/settings.php"
-    sed -i "s/DATABASE/$DBNAME/g" $SETTINGS
-    sed -i "s/USERNAME/drupal/g" $SETTINGS
-    sed -i "s/PASSWORD/drupal/g" $SETTINGS
-
     # Create settings.local.php
     LOCALSETTINGS=${SETTINGS//settings.php/settings.local.php}
     cp $SETTINGS $LOCALSETTINGS
@@ -331,6 +330,9 @@ if [ -d /var/www/$SITENAME ]; then
       echo "if (file_exists(dirname(__FILE__) . '/settings.local.php')) {" >> $SETTINGS
       echo "  include dirname(__FILE__) . '/settings.local.php';" >> $SETTINGS
       echo "}" >> $SETTINGS
+    else
+      head -$(($(cat $LOCALSETTINGS | wc -l)-3)) $LOCALSETTINGS > /tmp/settings.local.php
+      sudo mv -f /tmp/settings.local.php $LOCALSETTINGS
     fi
 
     # Define drush based on multisite
