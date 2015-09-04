@@ -163,7 +163,7 @@ sudo sh -c 'cat << "EOF" > /etc/apache2/mods-enabled/fastcgi.conf
  FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
 </IfModule>
 EOF'
-    sudo a2enmod actions php5 rewrite
+    sudo a2enmod actions rewrite
     sudo a2dissite default
     sudo service php5-fpm restart
     sudo service redis-server restart
