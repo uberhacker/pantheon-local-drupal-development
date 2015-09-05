@@ -97,21 +97,6 @@ Vagrant.configure(2) do |config|
     composer global require drupal/coder
     composer global require "squizlabs/php_codesniffer=*"
     composer global require terminus/terminus
-
-    # Install Xdebug - Based on article by Anthony Curreri
-    # http://www.mailbeyond.com/phpstorm-vagrant-install-xdebug-php
-    VM_ID_ADDRESS="192.168.33.10"
-    echo "[vagrant provisioning] Installing Xdebug..."
-    sudo mkdir /var/log/xdebug
-    sudo chown www-data:www-data /var/log/xdebug
-    sudo pecl install xdebug
-    XDEBUG_PATH=`find / -name 'xdebug.so'`
-    sudo cp /vagrant/resources/xdebug.ini /tmp/
-    sudo sed -i "s@XDEBUG_PATH@$XDEBUG_PATH@g" /tmp/xdebug.ini
-    sudo sed -i "s@$VM_ID_ADDRESS@$VM_ID_ADDRESS@g" /tmp/xdebug.ini
-    sudo cat /tmp/xdebug.ini >> /etc/php5/fpm/php.ini
-    sudo cat /tmp/xdebug.ini >> /etc/php5/cli/php.ini
-    sudo service apache2 restart # restart apache so latest php config is picked up
 cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
 source $HOME/.composer/vendor/drush/drush/examples/example.bashrc
@@ -154,6 +139,7 @@ alias codespell-install='/vagrant/codespell-install.sh'
 alias compass-install='/vagrant/compass-install.sh'
 alias less-install='/vagrant/less-install.sh'
 alias xhprof-install='/vagrant/xhprof-install.sh'
+alias xdebug-install='/vagrant/xdebug-install.sh'
 EOF
     sed -i 's/^#force_color_prompt/force_color_prompt/g' .bashrc
     sed -i 's/^unset color_prompt/#unset color_prompt/g' .bashrc
