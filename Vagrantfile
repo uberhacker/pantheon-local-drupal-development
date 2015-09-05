@@ -95,7 +95,7 @@ Vagrant.configure(2) do |config|
     export COMPOSER_HOME=/home/vagrant/.composer
     composer global require drush/drush:dev-master
     composer global require drupal/coder
-    composer global require squizlabs/PHP_CodeSniffer:\>=2
+    composer global require "squizlabs/php_codesniffer=*"
     composer global require terminus/terminus
 cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
@@ -139,6 +139,7 @@ alias codespell-install='/vagrant/codespell-install.sh'
 alias compass-install='/vagrant/compass-install.sh'
 alias less-install='/vagrant/less-install.sh'
 alias xhprof-install='/vagrant/xhprof-install.sh'
+alias xdebug-install='/vagrant/xdebug-install.sh'
 EOF
     sed -i 's/^#force_color_prompt/force_color_prompt/g' .bashrc
     sed -i 's/^unset color_prompt/#unset color_prompt/g' .bashrc

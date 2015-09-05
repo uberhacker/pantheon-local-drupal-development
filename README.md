@@ -106,6 +106,9 @@ Install less:
 Install xhprof:
 > vagrant@debian ~$ xhprof-install
 
+Install xdebug:
+> vagrant@debian ~$ xdebug-install
+
 Troubleshooting
 ---------------
 If you notice an error similar to the following:
