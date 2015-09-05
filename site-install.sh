@@ -55,11 +55,12 @@ fi
 LOGGEDIN=$(terminus auth whoami)
 if [ "$LOGGEDIN" == "You are not logged in." ]; then
   if [ -z "$EMAIL" ]; then
-    echo -n "Enter your Pantheon email address: "; read EMAIL
+    echo -n "Enter your Pantheon dashboard email address: "; read EMAIL
     if [ -z "$EMAIL" ]; then
       exit
     else
       echo -n "Save email address? (Y/n): "; read -n 1 SAVEMAIL
+      echo ""
       if [ -z "$SAVEMAIL" ]; then
         SAVEMAIL=y
       fi
@@ -72,12 +73,12 @@ if [ "$LOGGEDIN" == "You are not logged in." ]; then
     fi
   fi
   if [ -z "$PASSWORD" ]; then
-    echo -n "Enter your Pantheon password: "; read -s PASSWORD
+    echo -n "Enter your Pantheon dashboard password: "; read -s PASSWORD
     if [ -z "$PASSWORD" ]; then
       exit
     else
       echo -n "Save password? (y/N): "; read -n 1 SAVEPASS
-      echo $'\n'
+      echo ""
       if [ "$SAVEPASS" == "Y" ]; then
         SAVEPASS=y
       fi
@@ -169,8 +170,9 @@ if [ -d /var/www/$SITENAME ]; then
     # Add synced folder
     FOLDER=$(grep -n "config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" /vagrant/Vagrantfile)
     if [ -z "$FOLDER" ]; then
+      echo ""
       echo -n "Do you want to enable synced folders? (Y/n): "; read -n 1 SYNC
-      echo $'\n'
+      echo ""
       if [ -z "$SYNC" ]; then
         SYNC=y
       fi
@@ -178,8 +180,9 @@ if [ -d /var/www/$SITENAME ]; then
         SYNC=y
       fi
       if [ "$SYNC" == "y" ]; then
+        echo ""
         echo -n "Do you want to enable NFS? (Y/n): "; read -n 1 NFS
-        echo $'\n'
+        echo ""
         if [ -z "$NFS" ]; then
           NFS=y
         fi
@@ -286,6 +289,12 @@ if [ -d /var/www/$SITENAME ]; then
     fi
   fi
 
+  # Replace placeholder credentials if needed
+  SETTINGS="/var/www/$SITENAME/sites/$MULTISITE/settings.php"
+  sed -i "s/DATABASE/$DBNAME/g" $SETTINGS
+  sed -i "s/USERNAME/drupal/g" $SETTINGS
+  sed -i "s/PASSWORD/drupal/g" $SETTINGS
+
   # Perform the drush site install
   cd /var/www/$SITENAME
   drush site-install $PROFILE --account-name=admin --account-pass=admin --db-url=mysql://drupal:drupal@localhost/$DBNAME --site-name=$SITENAME --sites-subdir=$MULTISITE -v -y
@@ -312,12 +321,6 @@ if [ -d /var/www/$SITENAME ]; then
       fi
     done
 
-    # Replace placeholder credentials if needed
-    SETTINGS="/var/www/$SITENAME/sites/$MULTISITE/settings.php"
-    sed -i "s/DATABASE/$DBNAME/g" $SETTINGS
-    sed -i "s/USERNAME/drupal/g" $SETTINGS
-    sed -i "s/PASSWORD/drupal/g" $SETTINGS
-
     # Create settings.local.php
     LOCALSETTINGS=${SETTINGS//settings.php/settings.local.php}
     cp $SETTINGS $LOCALSETTINGS
@@ -331,6 +334,9 @@ if [ -d /var/www/$SITENAME ]; then
       echo "if (file_exists(dirname(__FILE__) . '/settings.local.php')) {" >> $SETTINGS
       echo "  include dirname(__FILE__) . '/settings.local.php';" >> $SETTINGS
       echo "}" >> $SETTINGS
+    else
+      head -$(($(cat $LOCALSETTINGS | wc -l)-3)) $LOCALSETTINGS > /tmp/settings.local.php
+      sudo mv -f /tmp/settings.local.php $LOCALSETTINGS
     fi
 
     # Define drush based on multisite
@@ -339,7 +345,29 @@ if [ -d /var/www/$SITENAME ]; then
       DRUSH="drush -l $MULTISITE"
     fi
 
+    # Install registry rebuild
+    if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
+      drush dl registry_rebuild -y
+      drush cc drush
+    fi
+
+    # Download and load the latest database backup if it exists
+    DB=$(terminus site backups get --site=$SITENAME --env=dev --element=database --latest)
+    if [ ! -z "$DB" ]; then
+      echo "Downloading latest database backup to dev-$SITENAME.sql.gz..."
+      curl --compress -o dev-$SITENAME.sql.gz $DB
+      gunzip dev-$SITENAME.sql.gz
+      $DRUSH sql-drop -y
+      echo "Loading dev-$SITENAME.sql..."
+      $DRUSH sqlc < dev-$SITENAME.sql
+      # Make sure the Drupal admin user login is admin/admin
+      $DRUSH sqlq "update users set name = 'admin' where uid = 1"
+      $DRUSH upwd admin --password=admin
+      $DRUSH rr
+    fi
+
     # Prompt to enable Redis
+    echo ""
     echo -n "Would you like to enable Redis? (Y/n): "; read -n 1 REDIS
     echo $'\n'
     if [ -z "$REDIS" ]; then
@@ -369,34 +397,39 @@ cat << EOF >> $LOCALSETTINGS
 EOF
     fi
 
-    # Download and load the latest database backup if it exists
-    DB=$(terminus site backup get --site=$SITENAME --env=dev --element=database --latest)
-    if [ ! -z "$DB" ]; then
-      echo "Downloading latest database backup to dev-$SITENAME.sql.gz..."
-      curl --compress -o dev-$SITENAME.sql.gz $DB
-      gunzip dev-$SITENAME.sql.gz
-      $DRUSH sql-drop -y
-      echo "Loading dev-$SITENAME.sql..."
-      $DRUSH sqlc < dev-$SITENAME.sql
-      #rm -f dev-$SITENAME.sql
-      # Make sure the Drupal admin user login is admin/admin
-      $DRUSH sqlq "update users set name = 'admin' where uid = 1"
-      $DRUSH upwd admin --password=admin
-      if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
-        drush dl registry_rebuild -y
-        drush cc drush
+    # Prompt to enable XHProf
+    echo ""
+    echo -n "Would you like to enable XHProf? (y/N): "; read -n 1 XHPROF
+    echo ""
+    if [ "$XHPROF" == "Y" ]; then
+      XHPROF=y
+    fi
+    if [ "$XHPROF" == "y" ]; then
+      XHPROF_MOD=$(dpkg -l | grep php5-xhprof)
+      if [ -z "$XHPROF_MOD" ]; then
+        source /vagrant/xhprof-install.sh
+      fi
+      XHPROF_PATH="/var/www/$SITENAME/sites/all/modules/contrib/xhprof"
+      if [ ! -d "$XHPROF_PATH" ]; then
+        $DRUSH dl xhprof
       fi
       $DRUSH rr
+      $DRUSH en -y xhprof
+      if [ ! -f "$XHPROF_PATH/xhprof-2354853-paths-d7-4.patch" ]; then
+        cd $XHPROF_PATH
+        wget https://www.drupal.org/files/issues/xhprof-2354853-paths-d7-4.patch
+        patch -p1 < xhprof-2354853-paths-d7-4.patch
+      fi
+      $DRUSH vset xhprof_default_class 'XHProfRunsFile'
+      $DRUSH vset xhprof_disable_admin_paths 1
+      $DRUSH vset xhprof_enabled 1
+      $DRUSH vset xhprof_flags_cpu 1
+      $DRUSH vset xhprof_flags_memory 1
+      $DRUSH vset xhprof_interval ''
     fi
 
-    # Enable development modules
-    #$DRUSH dl -n migrate migrate_extras coder devel devel_themer hacked redis simplehtmldom-7.x-1.12 stage_file_proxy
-    #$DRUSH en -y migrate_extras coder devel_themer hacked redis stage_file_proxy
-
-    # Disable unused/unwanted modules
-    $DRUSH dis -y overlay
-
     # Prompt to enable Stage File Proxy
+    echo ""
     echo -n "Would you like to enable Stage File Proxy? (Y/n): "; read -n 1 PROXY
     echo ""
     if [ -z "$PROXY" ]; then
@@ -420,7 +453,7 @@ EOF
     else
       echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
       cd /var/www/$SITENAME/sites/$MULTISITE/files
-      FILES=$(terminus site backup get --site=$SITENAME --env=dev --element=files --latest)
+      FILES=$(terminus site backups get --site=$SITENAME --env=dev --element=files --latest)
       curl --compress -o dev-$SITENAME-files.tar.gz $FILES
       tar zxvf dev-$SITENAME-files.tar.gz
       cp -r files_dev/* .
@@ -429,6 +462,13 @@ EOF
       sudo chown -R vagrant:www-data files/
       sudo chmod -R g+w files/
     fi
+
+    # Enable development modules
+    #$DRUSH dl -n migrate migrate_extras coder devel devel_themer hacked redis simplehtmldom-7.x-1.12 stage_file_proxy
+    #$DRUSH en -y migrate_extras coder devel_themer hacked redis stage_file_proxy
+
+    # Disable unused/unwanted modules
+    $DRUSH dis -y overlay
 
     # Output final message
     echo ""

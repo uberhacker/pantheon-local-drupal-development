@@ -1,5 +1,4 @@
 #!/bin/bash
-echo ""
 echo -n "Warning: This script will overwrite any existing vim settings.  Are you sure you want to proceed? (y/N): "; read -n 1 PROCEED
 echo ""
 if [ -z "$PROCEED" ]; then
@@ -35,6 +34,8 @@ git submodule update --init
 git submodule add https://github.com/scrooloose/nerdtree.git bundle/nerdtree
 git submodule update --init
 git submodule add https://github.com/Lokaltog/vim-powerline bundle/powerline
+git submodule update --init
+git submodule add https://github.com/ervandew/screen.git bundle/screen
 git submodule update --init
 git submodule add https://github.com/msanders/snipmate.vim.git bundle/snipmate
 git submodule update --init
@@ -163,6 +164,9 @@ function! TrimWhiteSpace()
   %s/\s\+$//e
 endfunction
 autocmd BufWritePre *.inc,*.install,*.module,*.php,*.profile,*.test,*.theme :call TrimWhiteSpace()
+
+" Start a screen shell session and compass watch
+nnoremap <silent> <F6> :ScreenShell compass watch<CR>
 
 " Toggle the NERDTree window
 nnoremap <silent> <F7> :NERDTreeToggle<CR>
