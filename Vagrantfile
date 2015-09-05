@@ -85,18 +85,18 @@ Vagrant.configure(2) do |config|
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy all'
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy-php56 all'
     sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-fastcgi php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server exuberant-ctags vim
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-fastcgi php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server exuberant-ctags vim screen
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
     curl -sS https://getcomposer.org/installer | php
     sudo mv composer.phar /usr/local/bin/composer
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o /home/vagrant/.git-prompt.sh
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /home/vagrant/.git-completion.bash
-    sudo curl https://github.com/pantheon-systems/cli/releases/download/0.6.0/terminus.phar -L -o /usr/local/bin/terminus && sudo chmod +x /usr/local/bin/terminus
     export HOME=/home/vagrant
     export COMPOSER_HOME=/home/vagrant/.composer
     composer global require drush/drush:dev-master
     composer global require drupal/coder
     composer global require squizlabs/PHP_CodeSniffer:\>=2
+    composer global require terminus/terminus
 cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
 source $HOME/.composer/vendor/drush/drush/examples/example.bashrc
@@ -121,11 +121,12 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias ip='ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d":" -f2 | cut -d" " -f1'
 alias git-who='git log --oneline --pretty=format:"%cn" | sort | uniq'
-alias composer-up='cd ~/.composer;composer update'
-alias vim-up='cd ~/.vim;git submodule foreach git pull'
+alias composer-up='cd $HOME/.composer;composer update'
+alias vim-up='cd $HOME/.vim;git submodule foreach git pull'
 alias drupalcs="phpcs --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias drupalcbf="phpcbf --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias git-config='/vagrant/git-config.sh'
+alias ssh-config='/vagrant/ssh-config.sh'
 alias restart-lamp='/vagrant/restart-lamp.sh'
 alias site-fix='/vagrant/site-fix.sh'
 alias site-install='/vagrant/site-install.sh'
@@ -137,6 +138,7 @@ alias webmin-install='/vagrant/webmin-install.sh'
 alias codespell-install='/vagrant/codespell-install.sh'
 alias compass-install='/vagrant/compass-install.sh'
 alias less-install='/vagrant/less-install.sh'
+alias xhprof-install='/vagrant/xhprof-install.sh'
 EOF
     sed -i 's/^#force_color_prompt/force_color_prompt/g' .bashrc
     sed -i 's/^unset color_prompt/#unset color_prompt/g' .bashrc
@@ -157,10 +159,10 @@ EOF
     sudo sed -i 's/^;always_populate_raw_post_data = -1/always_populate_raw_post_data = -1/g' php.ini
 sudo sh -c 'cat << "EOF" > /etc/apache2/mods-enabled/fastcgi.conf
 <IfModule mod_fastcgi.c>
- AddType application/x-httpd-fastphp5 .php
- Action application/x-httpd-fastphp5 /php5-fcgi
- Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
- FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
+  AddType application/x-httpd-fastphp5 .php
+  Action application/x-httpd-fastphp5 /php5-fcgi
+  Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
+  FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
 </IfModule>
 EOF'
     sudo a2enmod actions rewrite
