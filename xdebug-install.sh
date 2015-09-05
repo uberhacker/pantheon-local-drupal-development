@@ -3,7 +3,7 @@
 # Install Xdebug - Based on article by Anthony Curreri
 # http://www.mailbeyond.com/phpstorm-vagrant-install-xdebug-php
 VM_ID_ADDRESS="192.168.33.10"
-echo "[vagrant provisioning] Installing Xdebug..."
+echo "Installing Xdebug..."
 sudo mkdir /var/log/xdebug
 sudo chown www-data:www-data /var/log/xdebug
 sudo pecl install xdebug
