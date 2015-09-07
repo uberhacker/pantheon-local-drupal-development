@@ -7,4 +7,4 @@ sudo add-apt-repository -r 'deb-src http://download.webmin.com/download/reposito
 sudo add-apt-repository 'deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib'
 sudo add-apt-repository -r 'deb-src http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib'
 sudo apt-get update
-sudo apt-get install webmin
+sudo apt-get install webmin -y
