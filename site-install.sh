@@ -415,6 +415,7 @@ EOF
       fi
       $DRUSH rr
       $DRUSH en -y xhprof
+      # Apply patch to expose paths.  See https://www.drupal.org/node/2354853.
       if [ ! -f "$XHPROF_PATH/xhprof-2354853-paths-d7-4.patch" ]; then
         cd $XHPROF_PATH
         wget https://www.drupal.org/files/issues/xhprof-2354853-paths-d7-4.patch
@@ -426,6 +427,20 @@ EOF
       $DRUSH vset xhprof_flags_cpu 1
       $DRUSH vset xhprof_flags_memory 1
       $DRUSH vset xhprof_interval ''
+    fi
+
+    # Prompt to enable Xdebug
+    XDEBUG_MOD=$(dpkg -l | grep php5-xdebug)
+    if [ -z "$XDEBUG_MOD" ]; then
+      echo ""
+      echo -n "Would you like to enable Xdebug? (y/N): "; read -n 1 XDEBUG
+      echo ""
+      if [ "$XDEBUG" == "Y" ]; then
+        XDEBUG=y
+      fi
+      if [ "$XDEBUG" == "y" ]; then
+        source /vagrant/xdebug-install.sh
+      fi
     fi
 
     # Prompt to enable Stage File Proxy
