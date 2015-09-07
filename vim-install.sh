@@ -10,6 +10,18 @@ fi
 if [ "$PROCEED" != "y" ]; then
   exit
 fi
+VIM_NOX=$(dpkg -l | grep vim-nox)
+if [ -z "$VIM_NOX" ]; then
+  sudo apt-get install vim-nox
+fi
+CTAGS=$(dpkg -l | grep exuberant-ctags)
+if [ -z "$CTAGS" ]; then
+  sudo apt-get install exuberant-ctags
+fi
+SCREEN=$(dpkg -l | grep screen)
+if [ -z "$SCREEN" ]; then
+  sudo apt-get install screen
+fi
 cd
 rm -f .vimrc
 rm -rf .vim/
@@ -49,7 +61,7 @@ git submodule add https://github.com/vim-scripts/SyntaxComplete.git bundle/synta
 git submodule update --init
 git submodule add https://github.com/majutsushi/tagbar.git bundle/tagbar
 git submodule update --init
-git submodule add https://github.com/ludovicPelle/vim-xdebug.git bundle/xdebug
+git submodule add https://github.com/joonty/vdebug.git bundle/vdebug
 git submodule update --init
 git submodule add http://git.drupal.org/project/vimrc.git bundle/drupalvim
 git submodule update --init
