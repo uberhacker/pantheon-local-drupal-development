@@ -85,7 +85,7 @@ Vagrant.configure(2) do |config|
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy all'
     sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy-php56 all'
     sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-fastcgi php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server exuberant-ctags vim screen
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-fastcgi php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
     curl -sS https://getcomposer.org/installer | php
     sudo mv composer.phar /usr/local/bin/composer
@@ -95,7 +95,7 @@ Vagrant.configure(2) do |config|
     export COMPOSER_HOME=/home/vagrant/.composer
     composer global require drush/drush:dev-master
     composer global require drupal/coder
-    composer global require squizlabs/PHP_CodeSniffer:\>=2
+    composer global require "squizlabs/php_codesniffer=*"
     composer global require terminus/terminus
 cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
@@ -139,6 +139,7 @@ alias codespell-install='/vagrant/codespell-install.sh'
 alias compass-install='/vagrant/compass-install.sh'
 alias less-install='/vagrant/less-install.sh'
 alias xhprof-install='/vagrant/xhprof-install.sh'
+alias xdebug-install='/vagrant/xdebug-install.sh'
 EOF
     sed -i 's/^#force_color_prompt/force_color_prompt/g' .bashrc
     sed -i 's/^unset color_prompt/#unset color_prompt/g' .bashrc
