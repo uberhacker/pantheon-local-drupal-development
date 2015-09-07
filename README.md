@@ -103,8 +103,11 @@ Install compass:
 Install less:
 > vagrant@debian ~$ less-install
 
-Install xhprof:
+Install XHProf:
 > vagrant@debian ~$ xhprof-install
+
+Install Xdebug:
+> vagrant@debian ~$ xdebug-install
 
 Troubleshooting
 ---------------
