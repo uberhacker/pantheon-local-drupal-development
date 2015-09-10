@@ -157,7 +157,7 @@ if test $1; then
   DB="$ENV-$SITENAME.sql"
   rm -f $DB $DB.gz
   echo "Downloading the latest database backup to $DB ..."
-  curl --compress -o $DB.gz $(terminus site backup get --site=$SITENAME --env=$ENV --element=database --latest) && gunzip $DB.gz
+  curl --compress -o $DB.gz $(terminus site backups get --site=$SITENAME --env=$ENV --element=database --latest) && gunzip $DB.gz
   $DRUSH sql-drop -y
   echo "Loading $DB ..."
   $DRUSH sqlc < $DB
@@ -194,7 +194,7 @@ if test $1; then
   else
     echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
     cd /var/www/$SITENAME/sites/$MULTISITE/files
-    FILES=$(terminus site backup get --site=$SITENAME --env=dev --element=files --latest)
+    FILES=$(terminus site backups get --site=$SITENAME --env=dev --element=files --latest)
     curl --compress -o dev-$SITENAME-files.tar.gz $FILES
     tar zxvf dev-$SITENAME-files.tar.gz
     cp -r files_dev/* .
