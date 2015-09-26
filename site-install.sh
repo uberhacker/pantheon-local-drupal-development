@@ -127,15 +127,15 @@ fi
 
 # Validate the Pantheon Site Name
 ID=$(terminus site info --site=$SITENAME --field=id)
-LABEL=${ID:0:3}
-if [ "$LABEL" == "id:" ]; then
-  ID=${ID:4}
-fi
 if [ -z "$ID" ]; then
   echo ""
   echo "$SITENAME is not a valid Pantheon Site Name."
   echo ""
   exit
+fi
+LABEL=${ID:0:3}
+if [ "$LABEL" == "id:" ]; then
+  ID=${ID:4}
 fi
 
 # Remove existing site files if they exist
