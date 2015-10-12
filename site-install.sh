@@ -52,7 +52,7 @@ if [ -f $HOME/.terminus_auth ]; then
 fi
 
 # Terminus authentication prompts
-LOGGEDIN=$(terminus auth whoami)
+LOGGEDIN=$($TERMINUS auth whoami)
 if [ "$LOGGEDIN" == "You are not logged in." ]; then
   if [ -z "$EMAIL" ]; then
     echo -n "Enter your Pantheon dashboard email address: "; read EMAIL
@@ -104,11 +104,11 @@ if [ "$LOGGEDIN" == "You are not logged in." ]; then
   if [ "$GITEMAIL" != "$EMAIL" ]; then
     git config --global user.email $EMAIL
   fi
-  terminus auth login $EMAIL --password="$PASSWORD"
+  $TERMINUS auth login $EMAIL --password="$PASSWORD"
 fi
 
 # Remove saved credentials if unable to login
-LOGGEDIN=$(terminus auth whoami)
+LOGGEDIN=$($TERMINUS auth whoami)
 if [ "$LOGGEDIN" == "You are not logged in." ]; then
   if [ -f $HOME/.terminus_auth ]; then
     rm -f $HOME/.terminus_auth
@@ -126,7 +126,7 @@ if [ -z "$SITENAME" ]; then
 fi
 
 # Validate the Pantheon Site Name
-ID=$(terminus site info --site=$SITENAME --field=id)
+ID=$($TERMINUS site info --site=$SITENAME --field=id)
 if [ -z "$ID" ]; then
   echo ""
   echo "$SITENAME is not a valid Pantheon Site Name."
@@ -301,7 +301,7 @@ if [ -d /var/www/$SITENAME ]; then
 
   # Perform the drush site install
   cd /var/www/$SITENAME
-  drush site-install $PROFILE --account-name=admin --account-pass=admin --db-url=mysql://drupal:drupal@localhost/$DBNAME --site-name=$SITENAME --sites-subdir=$MULTISITE -v -y
+  $DRUSH site-install $PROFILE --account-name=admin --account-pass=admin --db-url=mysql://drupal:drupal@localhost/$DBNAME --site-name=$SITENAME --sites-subdir=$MULTISITE -v -y
   if [ -d /var/www/$SITENAME/sites/all/modules ]; then
     # Make sure essential directories exist
     if [ ! -d /var/www/$SITENAME/sites/all/modules/contrib ]; then
@@ -343,23 +343,26 @@ if [ -d /var/www/$SITENAME ]; then
       sudo mv -f /tmp/settings.local.php $LOCALSETTINGS
     fi
 
-    # Define drush based on multisite
-    DRUSH="drush"
-    if [ "$MULTISITE" != "default" ]; then
-      DRUSH="drush -l $MULTISITE"
+    # Install registry rebuild
+    if [ ! -f "$HOME/.drush/registry_rebuild/registry_rebuild.php" ]; then
+      call $DRUSH dl registry_rebuild -y
+      call $DRUSH cc drush
     fi
 
-    # Install registry rebuild
-    if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
-      drush dl registry_rebuild -y
-      drush cc drush
+    # Define drush based on multisite
+    if [ "$MULTISITE" != "default" ]; then
+      DRUSH="$DRUSH -l $MULTISITE"
     fi
 
     # Download and load the latest database backup if it exists
-    DB=$(terminus site backups get --site=$SITENAME --env=dev --element=database --latest)
+    DB=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=db --latest)
     if [ ! -z "$DB" ]; then
+      LABEL=${DB:0:11}
+      if [ "$LABEL" == "Backup URL:" ]; then
+        DB=${DB:12}
+      fi
       echo "Downloading latest database backup to dev-$SITENAME.sql.gz..."
-      curl --compress -o dev-$SITENAME.sql.gz $DB
+      curl -o dev-$SITENAME.sql.gz $DB
       gunzip dev-$SITENAME.sql.gz
       $DRUSH sql-drop -y
       echo "Loading dev-$SITENAME.sql..."
@@ -373,7 +376,7 @@ if [ -d /var/www/$SITENAME ]; then
     # Prompt to enable Redis
     echo ""
     echo -n "Would you like to enable Redis? (Y/n): "; read -n 1 REDIS
-    echo $'\n'
+    echo ""
     if [ -z "$REDIS" ]; then
       REDIS=y
     fi
@@ -460,7 +463,7 @@ EOF
     if [ "$PROXY" == "y" ]; then
       $DRUSH dl -n stage_file_proxy
       $DRUSH en -y stage_file_proxy
-      DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
+      DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
       if [ ! -z "$DOMAIN" ]; then
         $DRUSH vset stage_file_proxy_hotlink 1
         if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
@@ -470,16 +473,22 @@ EOF
         fi
       fi
     else
-      echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
       cd /var/www/$SITENAME/sites/$MULTISITE/files
-      FILES=$(terminus site backups get --site=$SITENAME --env=dev --element=files --latest)
-      curl --compress -o dev-$SITENAME-files.tar.gz $FILES
-      tar zxvf dev-$SITENAME-files.tar.gz
-      cp -r files_dev/* .
-      rm -rf files_dev/
-      cd ..
-      sudo chown -R vagrant:www-data files/
-      sudo chmod -R g+w files/
+      FILES=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=files --latest)
+      if [ ! -z "$FILES" ]; then
+        LABEL=${FILES:0:11}
+        if [ "$LABEL" == "Backup URL:" ]; then
+          FILES=${FILES:12}
+        fi
+        echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
+        curl -o dev-$SITENAME-files.tar.gz $FILES
+        tar zxvf dev-$SITENAME-files.tar.gz
+        cp -r files_dev/* .
+        rm -rf files_dev/
+        cd ..
+        sudo chown -R vagrant:www-data files/
+        sudo chmod -R g+w files/
+      fi
     fi
 
     # Enable development modules
