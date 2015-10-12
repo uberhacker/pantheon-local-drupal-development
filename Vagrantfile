@@ -161,9 +161,9 @@ EOF
 sudo sh -c 'cat << "EOF" > /etc/apache2/mods-enabled/fastcgi.conf
 <IfModule mod_fastcgi.c>
   AddType application/x-httpd-fastphp5 .php
-  Action application/x-httpd-fastphp5 /php5-fcgi
-  Alias /php5-fcgi /usr/lib/cgi-bin/php5-fcgi
-  FastCgiExternalServer /usr/lib/cgi-bin/php5-fcgi -socket /var/run/php5-fpm.sock -pass-header Authorization
+  Action application/x-httpd-fastphp5 /php5-fpm
+  Alias /php5-fpm /usr/sbin/php5-fpm
+  FastCgiExternalServer /usr/sbin/php5-fpm -socket /var/run/php5-fpm.sock -idle-timeout 120 -pass-header Authorization
 </IfModule>
 EOF'
     sudo a2enmod actions rewrite
