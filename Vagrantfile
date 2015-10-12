@@ -96,7 +96,7 @@ Vagrant.configure(2) do |config|
     composer global require drush/drush:dev-master
     composer global require drupal/coder
     composer global require "squizlabs/php_codesniffer=*"
-    composer global require terminus/terminus
+    composer global require pantheon-systems/cli
 cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
 source $HOME/.composer/vendor/drush/drush/examples/example.bashrc
