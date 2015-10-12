@@ -46,7 +46,7 @@ if test $1; then
   fi
 
   # Terminus authentication prompts
-  LOGGEDIN=$(terminus auth whoami)
+  LOGGEDIN=$($TERMINUS auth whoami)
   if [ "$LOGGEDIN" == "You are not logged in." ]; then
     if [ -z "$EMAIL" ]; then
       echo -n "Enter your Pantheon email address: "; read EMAIL
@@ -97,11 +97,11 @@ if test $1; then
     if [ "$GITEMAIL" != "$EMAIL" ]; then
       git config --global user.email $EMAIL
     fi
-    terminus auth login $EMAIL --password="$PASSWORD"
+    $TERMINUS auth login $EMAIL --password="$PASSWORD"
   fi
 
   # Remove saved credentials if unable to login
-  LOGGEDIN=$(terminus auth whoami)
+  LOGGEDIN=$($TERMINUS auth whoami)
   if [ "$LOGGEDIN" == "You are not logged in." ]; then
     if [ -f $HOME/.terminus_auth ]; then
       rm -f $HOME/.terminus_auth
@@ -150,24 +150,31 @@ if test $1; then
       exit
     fi
   fi
+  if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
+    $DRUSH dl registry_rebuild -y
+    $DRUSH cc drush
+  fi
   if [ ! -z "$MULTISITE" ]; then
     DRUSH="$DRUSH -l $MULTISITE"
   fi
   cd /var/www/$SITENAME
   DB="$ENV-$SITENAME.sql"
   rm -f $DB $DB.gz
-  echo "Downloading the latest database backup to $DB ..."
-  curl --compress -o $DB.gz $(terminus site backups get --site=$SITENAME --env=$ENV --element=database --latest) && gunzip $DB.gz
-  $DRUSH sql-drop -y
-  echo "Loading $DB ..."
-  $DRUSH sqlc < $DB
+  LATEST=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=db --latest)
+  if [ ! -z "$LATEST" ]; then
+    LABEL=${LATEST:0:11}
+    if [ "$LABEL" == "Backup URL:" ]; then
+      LATEST=${LATEST:12}
+    fi
+    echo "Downloading the latest database backup to $DB ..."
+    curl -o $DB.gz $LATEST && gunzip $DB.gz
+    $DRUSH sql-drop -y
+    echo "Loading $DB ..."
+    $DRUSH sqlc < $DB
+  fi
   # Make sure the Drupal admin user login is admin/admin
   $DRUSH sqlq "update users set name = 'admin' where uid = 1"
   $DRUSH upwd admin --password=admin
-  if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
-    drush dl registry_rebuild -y
-    drush cc drush
-  fi
   $DRUSH rr
 
   # Prompt to enable Stage File Proxy
@@ -182,7 +189,7 @@ if test $1; then
   if [ "$PROXY" == "y" ]; then
     $DRUSH dl -n stage_file_proxy
     $DRUSH en -y stage_file_proxy
-    DOMAIN=$(echo $(terminus site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
+    DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
     if [ ! -z "$DOMAIN" ]; then
       $DRUSH vset stage_file_proxy_hotlink 1
       if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
@@ -194,14 +201,20 @@ if test $1; then
   else
     echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
     cd /var/www/$SITENAME/sites/$MULTISITE/files
-    FILES=$(terminus site backups get --site=$SITENAME --env=dev --element=files --latest)
-    curl --compress -o dev-$SITENAME-files.tar.gz $FILES
-    tar zxvf dev-$SITENAME-files.tar.gz
-    cp -r files_dev/* .
-    rm -rf files_dev/
-    cd ..
-    sudo chown -R vagrant:www-data files/
-    sudo chmod -R g+w files/
+    FILES=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=files --latest)
+    if [ ! -z "$FILES" ]; then
+      LABEL=${FILES:0:11}
+      if [ "$LABEL" == "Backup URL:" ]; then
+        FILES=${FILES:12}
+      fi
+      curl -o dev-$SITENAME-files.tar.gz $FILES
+      tar zxvf dev-$SITENAME-files.tar.gz
+      sudo cp -r files_dev/* .
+      sudo rm -rf files_dev/
+      cd ..
+      sudo chown -R vagrant:www-data files/
+      sudo chmod -R g+w files/
+    fi
   fi
 else
   echo ""
