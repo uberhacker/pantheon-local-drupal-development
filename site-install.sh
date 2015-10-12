@@ -345,8 +345,8 @@ if [ -d /var/www/$SITENAME ]; then
 
     # Install registry rebuild
     if [ ! -f "$HOME/.drush/registry_rebuild/registry_rebuild.php" ]; then
-      call $DRUSH dl registry_rebuild -y
-      call $DRUSH cc drush
+      $DRUSH dl registry_rebuild -y
+      $DRUSH cc drush
     fi
 
     # Define drush based on multisite
