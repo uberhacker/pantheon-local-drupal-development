@@ -44,13 +44,13 @@ Vagrant.configure(2) do |config|
   # Example for VirtualBox:
   #
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "debian"
+    vb.name = "drupalconnect"
     # Display the VirtualBox GUI when booting the machine
     # vb.gui = true
     # Customize the number of CPUs on the VM:
-    vb.cpus = "1"
+    vb.cpus = "2"
     # Customize the amount of memory on the VM:
-    vb.memory = "2048"
+    vb.memory = "4096"
   end
   #
   # View the documentation for the provider you are using for more
@@ -91,6 +91,7 @@ Vagrant.configure(2) do |config|
     sudo mv composer.phar /usr/local/bin/composer
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o /home/vagrant/.git-prompt.sh
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /home/vagrant/.git-completion.bash
+    curl https://github.com/pantheon-systems/cli/blob/master/utils/terminus-completion.bash -o /home/vagrant/.terminus-completion.bash
     export HOME=/home/vagrant
     export COMPOSER_HOME=/home/vagrant/.composer
     composer global require drush/drush:dev-master
@@ -103,6 +104,7 @@ source $HOME/.composer/vendor/drush/drush/examples/example.bashrc
 source $HOME/.composer/vendor/drush/drush/drush.complete.sh
 source $HOME/.git-prompt.sh
 source $HOME/.git-completion.bash
+source $HOME/.terminus-completion.bash
 export GIT_PS1_SHOWDIRTYSTATE=1
 if [ "$(type -t __git_ps1)" ] && [ "$(type -t __drush_ps1)" ]; then
     if [ "$color_prompt" = yes ]; then
