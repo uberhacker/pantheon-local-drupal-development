@@ -71,7 +71,7 @@ Vagrant.configure(2) do |config|
     sudo sed -i "s/$(hostname -s)/debian/g" /etc/hosts
     sudo sh -c "echo debian.dev > /etc/hostname"
     sudo hostname debian.dev
-    sudo service hostname.sh start
+    sudo /etc/init.d/hostname.sh start
     sudo apt-get update
     sudo apt-get install python-software-properties -y
     sudo add-apt-repository 'deb http://mirrors.kernel.org/debian wheezy main contrib non-free'
@@ -91,7 +91,6 @@ Vagrant.configure(2) do |config|
     sudo mv composer.phar /usr/local/bin/composer
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o /home/vagrant/.git-prompt.sh
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /home/vagrant/.git-completion.bash
-    curl https://github.com/pantheon-systems/cli/blob/master/utils/terminus-completion.bash -o /home/vagrant/.terminus-completion.bash
     export HOME=/home/vagrant
     export COMPOSER_HOME=/home/vagrant/.composer
     composer global require drush/drush:dev-master
@@ -102,9 +101,9 @@ cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
 source $HOME/.composer/vendor/drush/drush/examples/example.bashrc
 source $HOME/.composer/vendor/drush/drush/drush.complete.sh
+source $HOME/.composer/vendor/pantheon-systems/cli/utils/terminus-completion.bash
 source $HOME/.git-prompt.sh
 source $HOME/.git-completion.bash
-source $HOME/.terminus-completion.bash
 export GIT_PS1_SHOWDIRTYSTATE=1
 if [ "$(type -t __git_ps1)" ] && [ "$(type -t __drush_ps1)" ]; then
     if [ "$color_prompt" = yes ]; then
