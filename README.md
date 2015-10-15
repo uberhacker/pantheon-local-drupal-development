@@ -1,6 +1,10 @@
 Introduction
 ------------
-The purpose of this project is to create a useful local development environment to build Drupal sites hosted on Pantheon.  Since the infrastructure is built on VirtualBox, this configuration can work on virtually any host operating system.  The entire LAMP stack is installed and configured.  Drupal installations are fully automated based on existing Pantheon Site Names.  This includes Apache virtual hosts, PHP configuration, MySQL databases and user permissions, and Drupal site installs via installation profiles.
+The purpose of this project is to create a useful local development environment to build Drupal sites hosted on Pantheon.  Since the infrastructure is built on VirtualBox, this configuration can work on virtually any host operating system.  The entire LEMP stack is installed and configured.  Drupal installations are fully automated based on existing Pantheon Site Names.  This includes Nginx virtual hosts, PHP configuration, MySQL databases and user permissions, and Drupal site installs via installation profiles.
+
+Updates
+-------
+2015-10-13: This project is now using Nginx, which more closely resembles the Pantheon infrastructure.  Also, Debian has been upgraded from version 7 (aka wheezy) to 8 (aka jessie).
 
 Prerequisites
 -------------
@@ -72,7 +76,7 @@ To restart the LAMP stack:
 To repair the database and file permissions:
 > vagrant@debian:~$ site-fix *site*
 
-To display the Apache logs:
+To display the Nginx logs:
 > vagrant@debian:~$ site-log *site* [access|error] [less|tail]
 
 If the second or third arguments are omitted, the default values are error and tail.
@@ -123,51 +127,54 @@ If you forgot to execute the first step: git config --global core.autocrlf false
 
 Tips
 ----
-To check your code:
+To check your code syntax for errors:
 > vagrant@debian:~$ cd /path/to/custom/code/directory
 
-> vagrant@debain:~$ drupalcs my_custom_module/
+> vagrant@debian:~$ drupalcs my_custom_module/
 
-To configure redis:
-> vagrant@debian:~$ cd /var/www/*site*
+To automatically fix code syntax errors:
+> vagrant@debian:~$ cd /path/to/custom/code/directory
 
-> vagrant@debian:~$ drush en redis -y
+> vagrant@debian:~$ drupalcbf my_custom_module/
 
-Add the following to settings.php:
-> // Use Redis for caching.
+To spell check your code for errors:
+> vagrant@debian ~$ codespell-install
 
-> $redis_path = 'sites/all/modules/contrib/redis';
+> vagrant@debian:~$ cd /path/to/custom/code/directory
 
-> $conf['redis_client_interface'] = 'PhpRedis';
+> vagrant@debian:~$ codespell my_custom_module/
 
-> $conf['cache_backends'][] = $redis_path . '/redis.autoload.inc';
+To examine your database:
+> vagrant@debian ~$ phpmyadmin-install
 
-> $conf['cache_default_class'] = 'Redis_Cache';
+> Browse to http://192.168.33.10/phpmyadmin and login with Username: drupal and Password: drupal
 
-> // Do not use Redis for cache_form (no performance difference).
+To update all composer installed apps (drush, terminus, etc.):
+> vagrant@debian ~$ composer-up
 
-> $conf['cache_class_cache_form'] = 'DrupalDatabaseCache';
+To get the ip address of the server:
+> vagrant@debian ~$ ip
 
-> // Use Redis for Drupal locks (semaphore).
-
-> $conf['lock_inc'] = $redis_path . '/redis.lock.inc';
-
-Change $redis_path to match your environment path.
-
-If you want to reinstall a site using site-install and you have enabled synced folders, you should clear out your synced folder locally beforehand, otherwise you may notice errors when the script attempts to remove existing files.
+A warning about synced folders:
+> If you want to reinstall a site using site-install and you have enabled synced folders, you should clear out your synced folder locally beforehand, otherwise you may notice errors when the script attempts to remove existing files.
 
 Faq
 ---
-Q. Pantheon uses nginx as the web server. Why do you use Apache instead?
+Q. Can I install more than one site?
 
-A. I may plan to incorporate nginx in future releases. For now, Apache works well for development and I find it easier to configure.
+A. Absolutely.  Just execute site-install and make sure the site name is not the same as an existing site, otherwise, it will be overwrote.  Also, the site must first exist in your Pantheon dashboard.
+
+
+Q. Where do I access my site on the server?
+
+A. All sites are subdirectories of /var/www.  So if your site is my-site, it would be located at /var/www/my-site.
+
+
+Q. Where is Solr?
+
+A. I may plan to install Solr in a future release.
 
 
 Q. Why did you choose Debian instead of Ubuntu or CentOS?
 
 A. This is a very good question. I felt Debian was lightweight and included everything I needed for a barebones development environment I could build around.  I also figured it would be easier to upgrade without having to reconfigure or reinstall the entire operating system.
-
-
-Q. Debian 8 (aka jessie) was released recently. Why did you choose the older Debian 7 (aka wheezy) release?
-
-A. I may plan to use Debian 8 in a future release. When I first started this project, the latest release was Debian 7 and I wasn't familiar with the differences in Debian 8 yet.
