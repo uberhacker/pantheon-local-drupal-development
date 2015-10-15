@@ -180,12 +180,12 @@ server {
     }
 
     # Very rarely should these ever be accessed outside of your lan
-    location ~* \\.(txt|log)$ {
+    location ~* \.(txt|log)$ {
         allow 192.168.0.0/16;
         deny all;
     }
 
-    location ~ \\..*/.*\\.php$ {
+    location ~ \..*/.*\.php$ {
         return 403;
     }
 
@@ -196,7 +196,7 @@ server {
     # Block access to "hidden" files and directories whose names begin with a
     # period. This includes directories used by version control systems such
     # as Subversion or Git to store control files.
-    location ~ (^|/)\\. {
+    location ~ (^|/)\. {
         return 403;
     }
 
@@ -209,8 +209,8 @@ server {
         rewrite ^/(.*)$ /index.php?q=$1;
     }
 
-    location ~ \\.php$ {
-        fastcgi_split_path_info ^(.+\\.php)(/.+)$;
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
         #NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $request_filename;
@@ -226,14 +226,12 @@ server {
         try_files $uri @rewrite;
     }
 
-    location ~* \\.(js|css|png|jpg|jpeg|gif|ico)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
         expires max;
         log_not_found off;
     }
 }
 EOF'
-    sudo rm /etc/nginx/sites-available/default
-    sudo rm /etc/nginx/sites-enabled/default
     sudo /etc/init.d/php5-fpm restart
     sudo /etc/init.d/redis-server restart
     sudo /etc/init.d/nginx restart
