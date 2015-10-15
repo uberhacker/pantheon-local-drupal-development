@@ -21,11 +21,11 @@ if test $1; then
     echo "Valid options are less or tail.  The default value is tail."
     exit
   fi
-  sudo $CMD /var/log/apache2/$SITENAME-$TYPE.log
+  sudo $CMD /var/log/nginx/$SITENAME-$TYPE.log
 else
   echo ""
-  echo "Purpose: Display the Apache logs for a site"
+  echo "Purpose: Display the web server logs for a site"
   echo ""
-  echo "Usage: $0 site [access|error] [less|tail] where site is a valid Apache virtual host or Pantheon Site Name"
+  echo "Usage: $0 site [access|error] [less|tail] where site is a valid Nginx virtual host or Pantheon Site Name"
   echo ""
 fi
