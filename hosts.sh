@@ -1,6 +1,6 @@
 #!/bin/bash
 MSG1="Precondition: This script must be run as administrator in Git Bash if the operating system is Windows"
-MSG2="Usage: $0 [list|add] site where site is the Apache virtual host or Pantheon Site Name"
+MSG2="Usage: $0 [list|add] site where site is the Nginx virtual host or Pantheon Site Name"
 if test $1; then
   if [[ "$1" != "list" && "$1" != "add" ]]; then
     echo $MSG1
