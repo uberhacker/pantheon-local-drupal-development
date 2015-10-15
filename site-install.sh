@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Check for prerequisites
+GIT=$(which git)
+if [ -z "$GIT" ]; then
+  echo "Git is not installed.  See https://github.com/git/git."
+  exit
+fi
 TERMINUS=$(which terminus)
 if [ -z "$TERMINUS" ]; then
   echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
@@ -100,9 +105,9 @@ if [ "$LOGGEDIN" == "You are not logged in." ]; then
     fi
   fi
   # Change email to match commits to Pantheon
-  GITEMAIL=$(git config --get user.email)
+  GITEMAIL=$($GIT config --get user.email)
   if [ "$GITEMAIL" != "$EMAIL" ]; then
-    git config --global user.email $EMAIL
+    $GIT config --global user.email $EMAIL
   fi
   $TERMINUS auth login $EMAIL --password="$PASSWORD"
 fi
@@ -145,31 +150,22 @@ fi
 
 # Clone the Pantheon git repository
 cd /var/www
-git clone "ssh://codeserver.dev.$ID@codeserver.dev.$ID.drush.in:2222/~/repository.git" $SITENAME
+$GIT clone "ssh://codeserver.dev.$ID@codeserver.dev.$ID.drush.in:2222/~/repository.git" $SITENAME
 if [ -d /var/www/$SITENAME ]; then
   DBNAME=${SITENAME//-/_}
-  if [ ! -f /etc/apache2/sites-available/$SITENAME ]; then
+  if [ ! -f /etc/nginx/sites-available/$SITENAME ]; then
     # Create MySQL/MariaDB database
     echo "drop database if exists $DBNAME" | mysql -u root
     echo "create database $DBNAME" | mysql -u root
     echo "grant all on $DBNAME.* to drupal@localhost identified by 'drupal'" | mysql -u root
     echo "flush privileges" | mysql -u root
 
-    # Create Apache virtual host
-    cd /etc/apache2/sites-available
-    sudo cp default $SITENAME
-    head -1 $SITENAME > /tmp/$SITENAME
-    echo "  ServerName $SITENAME.dev" >> /tmp/$SITENAME
-    tail -$(($(cat $SITENAME | wc -l)-1)) $SITENAME >> /tmp/$SITENAME
-    sed -i "s,\t,  ,g" /tmp/$SITENAME
-    sed -i "s,/var/www,/var/www/$SITENAME,g" /tmp/$SITENAME
-    sudo mv -f /tmp/$SITENAME $SITENAME
-    head -10 $SITENAME > /tmp/$SITENAME
-    echo "    Include /var/www/$SITENAME/.htaccess" >> /tmp/$SITENAME
-    tail -$(($(cat $SITENAME | wc -l)-10)) $SITENAME >> /tmp/$SITENAME
-    sed -i "s,error.log,$SITENAME-error.log,g" /tmp/$SITENAME
-    sed -i "s,access.log,$SITENAME-access.log,g" /tmp/$SITENAME
-    sudo mv -f /tmp/$SITENAME $SITENAME
+    # Create Nginx virtual host
+    cp /etc/nginx/conf.d/drupal.conf.example /tmp/$SITENAME
+    sed -i "s,example.com,$SITENAME.dev,g" /tmp/$SITENAME
+    sed -i "s,drupal7,$SITENAME,g" /tmp/$SITENAME
+    sudo mv /tmp/$SITENAME /etc/nginx/sites-available/$SITENAME
+    sudo ln -s /etc/nginx/sites-available/$SITENAME /etc/nginx/sites-enabled/$SITENAME
 
     # Add synced folder
     FOLDER=$(grep -n "config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" /vagrant/Vagrantfile)
@@ -221,12 +217,6 @@ if [ -d /var/www/$SITENAME ]; then
         exit
       fi
     fi
-  fi
-
-  # Enable Apache virtual host
-  if [ ! -f /etc/apache2/sites-enabled/$SITENAME ]; then
-    sudo a2ensite $SITENAME
-    sudo service apache2 restart
   fi
 
   # Set install profile
@@ -328,7 +318,7 @@ if [ -d /var/www/$SITENAME ]; then
     # Create settings.local.php
     LOCALSETTINGS=${SETTINGS//settings.php/settings.local.php}
     cp $SETTINGS $LOCALSETTINGS
-    git checkout $SETTINGS
+    $GIT checkout $SETTINGS
     LOCAL="if (file_exists(dirname(__FILE__) . '/settings.local.php')) {
   include dirname(__FILE__) . '/settings.local.php';
 }"
@@ -497,6 +487,9 @@ EOF
 
     # Disable unused/unwanted modules
     $DRUSH dis -y overlay
+
+    # Restart web services
+    /vagrant/restart-lamp.sh
 
     # Output final message
     echo ""
