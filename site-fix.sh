@@ -51,10 +51,10 @@ if test $1; then
     fi
   fi
   cd /var/www/$SITENAME
-  # Make sure the directory is writable by Apache so files can be saved.
+  # Make sure the directory is writable by Nginx so files can be saved.
   sudo chown -R vagrant:www-data sites/$MULTISITE/files
   sudo chmod -R g+w sites/$MULTISITE/files
-  # Make sure the directory is writable by Apache so features can be exported.
+  # Make sure the directory is writable by Nginx so features can be exported.
   if [ -d "/var/www/$SITENAME/sites/$MULTISITE/features" ]; then
     sudo chown -R vagrant:www-data sites/$MULTISITE/features
     sudo chmod -R g+w sites/$MULTISITE/features
@@ -72,6 +72,6 @@ else
   echo ""
   echo "Purpose: Repairs the site database and file permissions"
   echo ""
-  echo "Usage: $0 site where site is a valid Apache virtual host or Pantheon Site Name"
+  echo "Usage: $0 site where site is a valid Nginx virtual host or Pantheon Site Name"
   echo ""
 fi
