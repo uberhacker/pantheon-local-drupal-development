@@ -12,15 +12,15 @@ if [ "$PROCEED" != "y" ]; then
 fi
 VIM_NOX=$(dpkg -l | grep vim-nox)
 if [ -z "$VIM_NOX" ]; then
-  sudo apt-get install vim-nox
+  sudo apt-get install vim-nox -y
 fi
 CTAGS=$(dpkg -l | grep exuberant-ctags)
 if [ -z "$CTAGS" ]; then
-  sudo apt-get install exuberant-ctags
+  sudo apt-get install exuberant-ctags -y
 fi
 SCREEN=$(dpkg -l | grep screen)
 if [ -z "$SCREEN" ]; then
-  sudo apt-get install screen
+  sudo apt-get install screen -y
 fi
 cd
 rm -f .vimrc
@@ -143,7 +143,7 @@ set background=light
 colors peaksea
 
 " Check syntax
-nnoremap <silent> <F5> :SyntasticCheck<CR>
+nnoremap <silent> <F3> :SyntasticCheck<CR>
 let g:syntastic_aggregate_errors = 1
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_jump = 2
@@ -162,6 +162,9 @@ let g:syntastic_style_warning_symbol = 'S⚠'
 let g:syntastic_warning_symbol = '⚠'
 highlight SyntasticErrorLine guibg=red
 highlight SyntasticWarningLine guibg=yellow
+
+" Toggle line numbers
+nnoremap <silent> <F4> :set invnumber<CR>
 
 " Highlight trailing whitespace
 highlight ExtraWhitespace ctermbg=red guibg=red
@@ -188,9 +191,6 @@ let NERDTreeAutoDeleteBuffer=1
 
 " Toggle the Tagbar window
 nnoremap <silent> <F8> :TagbarToggle<CR>
-
-" Toggle line numbers
-nnoremap <silent> <F10> :set invnumber<CR>
 
 " Toggle current fold open/closed
 nnoremap <Space> za
