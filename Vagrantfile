@@ -12,7 +12,7 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "bento/debian-7.8"
+  config.vm.box = "debian/jessie64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -44,13 +44,13 @@ Vagrant.configure(2) do |config|
   # Example for VirtualBox:
   #
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "drupalconnect"
+    vb.name = "debian-jessie64"
     # Display the VirtualBox GUI when booting the machine
     # vb.gui = true
     # Customize the number of CPUs on the VM:
-    vb.cpus = "2"
+    vb.cpus = "1"
     # Customize the amount of memory on the VM:
-    vb.memory = "4096"
+    vb.memory = "2048"
   end
   #
   # View the documentation for the provider you are using for more
@@ -71,27 +71,23 @@ Vagrant.configure(2) do |config|
     sudo sed -i "s/$(hostname -s)/debian/g" /etc/hosts
     sudo sh -c "echo debian.dev > /etc/hostname"
     sudo hostname debian.dev
-    sudo service hostname.sh start
+    sudo /etc/init.d/hostname.sh start
+    sudo apt-get -y install software-properties-common
+    sudo rm /etc/apt/sources.list
+    sudo touch /etc/apt/sources.list
+    sudo add-apt-repository 'deb http://mirrors.kernel.org/debian jessie main contrib non-free'
+    sudo add-apt-repository 'deb http://security.debian.org/ jessie/updates main contrib non-free'
+    sudo add-apt-repository 'deb http://mirrors.kernel.org/debian jessie-updates main contrib non-free'
     sudo apt-get update
-    sudo apt-get install python-software-properties -y
-    sudo add-apt-repository 'deb http://mirrors.kernel.org/debian wheezy main contrib non-free'
-    sudo add-apt-repository 'deb http://security.debian.org/ wheezy/updates main contrib non-free'
-    sudo add-apt-repository 'deb http://mirrors.kernel.org/debian wheezy-updates main contrib non-free'
-    sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-    sudo add-apt-repository 'deb http://ftp.utexas.edu/mariadb/repo/10.0/debian wheezy main'
-    wget http://www.dotdeb.org/dotdeb.gpg
-    sudo apt-key add dotdeb.gpg
-    rm -f dotdeb.gpg
-    sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy all'
-    sudo add-apt-repository 'deb http://packages.dotdeb.org wheezy-php56 all'
-    sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git apache2 libapache2-mod-fastcgi php5 php5-curl php5-dev php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git php5 php5-curl php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server nginx
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
+    sudo apt-get autoremove --purge -y
+    sudo apt-get autoclean -y
+    sudo apt-get clean
     curl -sS https://getcomposer.org/installer | php
     sudo mv composer.phar /usr/local/bin/composer
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o /home/vagrant/.git-prompt.sh
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /home/vagrant/.git-completion.bash
-    curl https://github.com/pantheon-systems/cli/blob/master/utils/terminus-completion.bash -o /home/vagrant/.terminus-completion.bash
     export HOME=/home/vagrant
     export COMPOSER_HOME=/home/vagrant/.composer
     composer global require drush/drush:dev-master
@@ -102,9 +98,9 @@ cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
 source $HOME/.composer/vendor/drush/drush/examples/example.bashrc
 source $HOME/.composer/vendor/drush/drush/drush.complete.sh
+source $HOME/.composer/vendor/pantheon-systems/cli/utils/terminus-completion.bash
 source $HOME/.git-prompt.sh
 source $HOME/.git-completion.bash
-source $HOME/.terminus-completion.bash
 export GIT_PS1_SHOWDIRTYSTATE=1
 if [ "$(type -t __git_ps1)" ] && [ "$(type -t __drush_ps1)" ]; then
     if [ "$color_prompt" = yes ]; then
@@ -150,30 +146,98 @@ EOF
     source .bashrc
     $HOME/.composer/vendor/bin/phpcs --config-set installed_paths $HOME/.composer/vendor/drupal/coder/coder_sniffer
     cd /etc/php5/fpm/
-    sudo sed -i 's/^memory_limit = 128M/memory_limit = 256M/g' php.ini
-    sudo sed -i 's/^max_execution_time = 30/max_execution_time = 90/g' php.ini
-    sudo sed -i 's/^max_input_time = 60/max_input_time = 90/g' php.ini
-    sudo sed -i 's/^post_max_size = 8M/post_max_size = 128M/g' php.ini
-    sudo sed -i 's/^upload_max_filesize = 2M/upload_max_filesize = 128M/g' php.ini
-    sudo sed -i 's/^error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT/error_reporting = E_ALL/g' php.ini
-    sudo sed -i 's/^display_errors = Off/display_errors = On/g' php.ini
-    sudo sed -i 's/^display_startup_errors = Off/display_startup_errors = On/g' php.ini
-    sudo sed -i 's/^track_errors = Off/track_errors = On/g' php.ini
-    sudo sed -i 's/^;always_populate_raw_post_data = -1/always_populate_raw_post_data = -1/g' php.ini
-sudo sh -c 'cat << "EOF" > /etc/apache2/mods-enabled/fastcgi.conf
-<IfModule mod_fastcgi.c>
-  AddType application/x-httpd-fastphp5 .php
-  Action application/x-httpd-fastphp5 /php5-fpm
-  Alias /php5-fpm /usr/sbin/php5-fpm
-  FastCgiExternalServer /usr/sbin/php5-fpm -socket /var/run/php5-fpm.sock -idle-timeout 120 -pass-header Authorization
-</IfModule>
+    sudo sed -i 's/^memory_limit = 128M/memory_limit = 256M/' php.ini
+    sudo sed -i 's/^max_execution_time = 30/max_execution_time = 90/' php.ini
+    sudo sed -i 's/^max_input_time = 60/max_input_time = 90/' php.ini
+    sudo sed -i 's/^post_max_size = 8M/post_max_size = 128M/' php.ini
+    sudo sed -i 's/^upload_max_filesize = 2M/upload_max_filesize = 128M/' php.ini
+    sudo sed -i 's/^error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT/error_reporting = E_ALL/' php.ini
+    sudo sed -i 's/^display_errors = Off/display_errors = On/' php.ini
+    sudo sed -i 's/^display_startup_errors = Off/display_startup_errors = On/' php.ini
+    sudo sed -i 's/^track_errors = Off/track_errors = On/' php.ini
+    sudo sed -i 's/^;always_populate_raw_post_data = -1/always_populate_raw_post_data = -1/' php.ini
+    sudo sed -i 's/^;cgi.fix_pathauto=1/cgi.fix_pathauto = 0/' php.ini
+sudo sh -c 'cat << "EOF" > /etc/nginx/conf.d/drupal.conf.example
+# Example Drupal Recipe
+# See https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/
+server {
+    listen 80;
+    server_name example.com;
+    root /var/www/drupal7;
+    index index.php;
+    access_log /var/log/nginx/drupal7-access.log;
+    error_log /var/log/nginx/drupal7-error.log;
+
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+
+    # Very rarely should these ever be accessed outside of your lan
+    location ~* \\.(txt|log)$ {
+        allow 192.168.0.0/16;
+        deny all;
+    }
+
+    location ~ \\..*/.*\\.php$ {
+        return 403;
+    }
+
+    location ~ ^/sites/.*/private/ {
+        return 403;
+    }
+
+    # Block access to "hidden" files and directories whose names begin with a
+    # period. This includes directories used by version control systems such
+    # as Subversion or Git to store control files.
+    location ~ (^|/)\\. {
+        return 403;
+    }
+
+    location / {
+        # try_files $uri @rewrite; # For Drupal <= 6
+        try_files $uri /index.php?$query_string; # For Drupal >= 7
+    }
+
+    location @rewrite {
+        rewrite ^/(.*)$ /index.php?q=$1;
+    }
+
+    location ~ \\.php$ {
+        fastcgi_split_path_info ^(.+\\.php)(/.+)$;
+        #NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $request_filename;
+        fastcgi_intercept_errors on;
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        #fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+    }
+
+    # Fighting with Styles? This little gem is amazing.
+    # location ~ ^/sites/.*/files/imagecache/ { # For Drupal <= 6
+    location ~ ^/sites/.*/files/styles/ { # For Drupal >= 7
+        try_files $uri @rewrite;
+    }
+
+    location ~* \\.(js|css|png|jpg|jpeg|gif|ico)$ {
+        expires max;
+        log_not_found off;
+    }
+}
 EOF'
-    sudo a2enmod actions rewrite
-    sudo a2dissite default
-    sudo service php5-fpm restart
-    sudo service redis-server restart
-    sudo service apache2 restart
-    sudo service mysql restart
+    sudo rm /etc/nginx/sites-available/default
+    sudo rm /etc/nginx/sites-enabled/default
+    sudo /etc/init.d/php5-fpm restart
+    sudo /etc/init.d/redis-server restart
+    sudo /etc/init.d/nginx restart
+    sudo /etc/init.d/mysql restart
     cd
   SHELL
 end
