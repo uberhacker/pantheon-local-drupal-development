@@ -9,6 +9,11 @@ if test $1; then
   ENV=dev
 
   # Check for prerequisites
+  GIT=$(which git)
+  if [ -z "$GIT" ]; then
+    echo "Git is not installed.  See https://github.com/git/git."
+    exit
+  fi
   TERMINUS=$(which terminus)
   if [ -z "$TERMINUS" ]; then
     echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
@@ -93,9 +98,9 @@ if test $1; then
       fi
     fi
     # Change email to match commits to Pantheon
-    GITEMAIL=$(git config --get user.email)
+    GITEMAIL=$($GIT config --get user.email)
     if [ "$GITEMAIL" != "$EMAIL" ]; then
-      git config --global user.email $EMAIL
+      $GIT config --global user.email $EMAIL
     fi
     $TERMINUS auth login $EMAIL --password="$PASSWORD"
   fi
@@ -220,6 +225,6 @@ else
   echo ""
   echo "Purpose: Downloads the latest database and uploads to your local database"
   echo ""
-  echo "Usage: $0 site where site is a valid Apache virtual host or Pantheon Site Name"
+  echo "Usage: $0 site where site is a valid Nginx virtual host or Pantheon Site Name"
   echo ""
 fi
