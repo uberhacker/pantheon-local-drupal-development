@@ -1,21 +1,21 @@
 #!/bin/bash
 if [ ! "$(pidof php5-fpm)" ]; then
-  sudo service php5-fpm start
+  sudo /etc/init.d/php5-fpm start
 else
-  sudo service php5-fpm restart
+  sudo /etc/init.d/php5-fpm restart
 fi
 if [ ! "$(pidof redis-server)" ]; then
-  sudo service redis-server start
+  sudo /etc/init.d/redis-server start
 else
-  sudo service redis-server restart
+  sudo /etc/init.d/redis-server restart
 fi
-if [ ! "$(pidof apache2)" ]; then
-  sudo service apache2 start
+if [ ! "$(pidof nginx)" ]; then
+  sudo /etc/init.d/nginx start
 else
-  sudo service apache2 restart
+  sudo /etc/init.d/nginx restart
 fi
 if [ ! "$(pidof mysqld)" ]; then
-  sudo service mysql start
+  sudo /etc/init.d/mysql start
 else
-  sudo service mysql restart
+  sudo /etc/init.d/mysql restart
 fi
