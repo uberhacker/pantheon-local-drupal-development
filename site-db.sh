@@ -51,8 +51,9 @@ if test $1; then
   fi
 
   # Terminus authentication prompts
-  LOGGEDIN=$($TERMINUS auth whoami)
-  if [ "$LOGGEDIN" == "You are not logged in." ]; then
+  WHOAMI=$($TERMINUS auth whoami)
+  AUTHENTICATED=${WHOAMI:0:25}
+  if [ "$AUTHENTICATED" != "You are authenticated as:" ]; then
     if [ -z "$EMAIL" ]; then
       echo -n "Enter your Pantheon email address: "; read EMAIL
       if [ -z "$EMAIL" ]; then
@@ -106,8 +107,9 @@ if test $1; then
   fi
 
   # Remove saved credentials if unable to login
-  LOGGEDIN=$($TERMINUS auth whoami)
-  if [ "$LOGGEDIN" == "You are not logged in." ]; then
+  WHOAMI=$($TERMINUS auth whoami)
+  AUTHENTICATED=${WHOAMI:0:25}
+  if [ "$AUTHENTICATED" != "You are authenticated as:" ]; then
     if [ -f $HOME/.terminus_auth ]; then
       rm -f $HOME/.terminus_auth
     fi
