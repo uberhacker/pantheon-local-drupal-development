@@ -156,7 +156,12 @@ EOF
     sudo sed -i 's/^display_startup_errors = Off/display_startup_errors = On/' php.ini
     sudo sed -i 's/^track_errors = Off/track_errors = On/' php.ini
     sudo sed -i 's/^;always_populate_raw_post_data = -1/always_populate_raw_post_data = -1/' php.ini
-    sudo sed -i 's/^;cgi.fix_pathauto=1/cgi.fix_pathauto = 0/' php.ini
+    sudo sed -i 's/^;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/' php.ini
+    cd /etc/php5/fpm/pool.d
+    sudo sed -i 's,^listen = 127.0.0.1:9000,listen = /var/run/php5-fpm.sock,' www.conf
+    sudo sed -i 's,^;listen.owner = www-data,listen.owner = www-data,' www.conf
+    sudo sed -i 's,^;listen.group = www-data,listen.group = www-data,' www.conf
+    sudo sed -i 's,^;listen.mode = 0660,listen.mode = 0660,' www.conf
 sudo sh -c 'cat << "EOF" > /etc/nginx/conf.d/drupal.conf.example
 # Example Drupal Recipe
 # See https://www.nginx.com/resources/wiki/start/topics/recipes/drupal/
