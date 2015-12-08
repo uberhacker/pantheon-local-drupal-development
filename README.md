@@ -125,6 +125,30 @@ If you forgot to execute the first step: git config --global core.autocrlf false
 
 > vagrant@debian:~$ dos2unix /vagrant/site-install.sh
 
+If you are having trouble with rsync during vagrant up in Windows, try the following:
+> Download <a href="https://www.itefix.net/dl/cwRsync_5.4.1_x86_Free.zip">cwRsync Free Edition</a>, extract and copy into your Git bin directory (usually in C:\Program Files\Git\bin or C:\Program Files (x86)\Git\bin).
+
+> $ vagrant install plugin vagrant-rsync
+
+> $ vagrant up
+
+If you get a message that states VirtualBox Guest Additions are missing or not matching the host version during vagrant up, try the following:
+> Use a client app like WinSCP or Filezilla and login to 192.168.33.10 via SFTP on port 22 with username vagrant and password vagrant.  Then copy VBoxGuestAdditions.iso (located at C:\Program Files\Oracle\VirtualBox in Windows) to /home/vagrant on the guest.
+
+> $ vagrant ssh
+
+> vagrant@debian:~$ sudo mkdir /media/vb
+
+> vagrant@debian:~$ sudo mount -t iso9660 -o loop /home/vagrant/VBoxGuestAdditions.iso /media/vb
+
+> vagrant@debian:~$ cd /media/vb
+
+> vagrant@debian:~$ sudo ./VBoxLinuxAdditions.run (and follow the instructions)
+
+> vagrant@debian:~$ exit
+
+> $ vagrant reload
+
 Tips
 ----
 To check your code syntax for errors:
