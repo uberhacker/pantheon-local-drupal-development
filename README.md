@@ -130,7 +130,7 @@ If you are having trouble with rsync during vagrant up in Windows, try the follo
 
 > $ vagrant plugin install vagrant-rsync
 
-> $ vagrant up
+> $ vagrant reload
 
 If you get a message that states VirtualBox Guest Additions are missing or not matching the host version during vagrant up, try the following:
 > Use a client app like WinSCP or Filezilla and login to 192.168.33.10 via SFTP on port 22 with username vagrant and password vagrant.  Then copy VBoxGuestAdditions.iso (located at C:\Program Files\Oracle\VirtualBox in Windows) to /home/vagrant on the guest.
