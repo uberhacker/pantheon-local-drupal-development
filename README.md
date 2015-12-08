@@ -128,7 +128,7 @@ If you forgot to execute the first step: git config --global core.autocrlf false
 If you are having trouble with rsync during vagrant up in Windows, try the following:
 > Download <a href="https://www.itefix.net/dl/cwRsync_5.4.1_x86_Free.zip">cwRsync Free Edition</a>, extract and copy into your Git bin directory (usually in C:\Program Files\Git\bin or C:\Program Files (x86)\Git\bin).
 
-> $ vagrant install plugin vagrant-rsync
+> $ vagrant plugin install vagrant-rsync
 
 > $ vagrant up
 
