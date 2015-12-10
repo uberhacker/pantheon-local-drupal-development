@@ -125,14 +125,17 @@ If you forgot to execute the first step: git config --global core.autocrlf false
 
 > vagrant@debian:~$ dos2unix /vagrant/site-install.sh
 
-If you are having trouble with rsync during vagrant up in Windows, try the following:
+If you are having trouble with rsync during vagrant up in Windows with a message as follows:
+> "rsync" could not be found on your PATH. Make sure that rsync
+is properly installed on your system and available on the PATH.
+
 > Download <a href="https://www.itefix.net/dl/cwRsync_5.4.1_x86_Free.zip">cwRsync Free Edition</a>, extract and copy into your Git bin directory (usually in C:\Program Files\Git\bin or C:\Program Files (x86)\Git\bin).
 
 > $ vagrant plugin install vagrant-rsync
 
 > $ vagrant reload
 
-If you get a message that states VirtualBox Guest Additions are missing or not matching the host version during vagrant up, try the following:
+If you get a message that states GuestAdditions are missing or not matching the host version during vagrant up, try the following:
 > $ cd /path/to/pantheon-local-drupal-development
 
 > $ cp "C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso" .
@@ -140,6 +143,8 @@ If you get a message that states VirtualBox Guest Additions are missing or not m
 > $ vagrant reload
 
 > $ vagrant ssh
+
+*If you don't get a vagrant@debian:~$ prompt, press Ctrl+C and try connecting via iTerm 2 (MAC) or PuTTY (Windows).  See Tips section below for more details.*
 
 > vagrant@debian:~$ sudo mkdir /media/vb
 
@@ -155,6 +160,10 @@ If you get a message that states VirtualBox Guest Additions are missing or not m
 
 Tips
 ----
+**Use iTerm 2 (MAC) or PuTTY (Windows) to connect via 192.168.33.10 with username vagrant and password vagrant to improve your terminal experience.**
+
+**Download <a href="https://www.iterm2.com/downloads.html">iTerm 2</a> (MAC) or <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html">PuTTY</a> (Windows).**
+
 To check your code syntax for errors:
 > vagrant@debian:~$ cd /path/to/custom/code/directory
 
