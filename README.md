@@ -220,6 +220,11 @@ Q. Where is Solr?
 A. I may plan to install Solr in a future release.
 
 
+Q. Where is Varnish?
+
+A. I may plan to install Varnish in a future release.
+
+
 Q. Why did you choose Debian instead of Ubuntu or CentOS?
 
 A. This is a very good question. I felt Debian was lightweight and included everything I needed for a barebones development environment I could build around.  I also figured it would be easier to upgrade without having to reconfigure or reinstall the entire operating system.
