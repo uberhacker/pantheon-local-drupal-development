@@ -115,17 +115,17 @@ Install Xdebug:
 
 Troubleshooting
 ---------------
-If you notice an error similar to the following:
+1. If you notice an error similar to the following:
 > ./hosts.sh: line 17: /C/Windows/System32/drivers/etc/hosts: Permission denied
 
-Make sure the hosts file is not read only.  Navigate to C:\Windows\System32\drivers\etc in File Explorer.  Right click on hosts, select Properties, uncheck the Read-only box next to Attributes: and then click OK.
+> Make sure the hosts file is not read only.  Navigate to C:\Windows\System32\drivers\etc in File Explorer.  Right click on hosts, select Properties, uncheck the Read-only box next to Attributes: and then click OK.
 
-If you forgot to execute the first step: git config --global core.autocrlf false, you may not be able to execute git-config or site-install.  To fix, execute the following:
+2. If you forgot to execute the first step: git config --global core.autocrlf false, you may not be able to execute git-config or site-install.  To fix, execute the following:
 > vagrant@debian:~$ dos2unix /vagrant/git-config.sh
 
 > vagrant@debian:~$ dos2unix /vagrant/site-install.sh
 
-If you are having trouble with rsync during vagrant up in Windows with a message as follows:
+3. If you are having trouble with rsync during vagrant up in Windows with a message as follows:
 > "rsync" could not be found on your PATH. Make sure that rsync
 is properly installed on your system and available on the PATH.
 
@@ -135,7 +135,7 @@ is properly installed on your system and available on the PATH.
 
 > $ vagrant reload
 
-If you installed cwRsync as instructed above and execute vagrant ssh, you may get a message similar to the following:
+4. If you installed cwRsync as instructed above and execute vagrant ssh, you may get a message similar to the following:
 
 > cygwin warning:
   MS-DOS style path detected: .../.vagrant/machines/default/virtualbox/private_key
@@ -147,7 +147,7 @@ If you installed cwRsync as instructed above and execute vagrant ssh, you may ge
 
 > *If you don't get a vagrant@debian:~$ prompt, press Ctrl+C and try connecting via iTerm 2 (MAC) or PuTTY (Windows).  See Tips section below for more details.*
 
-If you get a message that states GuestAdditions are missing or not matching the host version during vagrant up, try the following:
+5. If you get a message that states GuestAdditions are missing or not matching the host version during vagrant up, try the following:
 > $ cd /path/to/pantheon-local-drupal-development
 
 > $ cp "C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso" . <- Don't forget the trailing dot
@@ -174,35 +174,35 @@ Tips
 
 **Download <a href="https://www.iterm2.com/downloads.html">iTerm 2</a> (MAC) or <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html">PuTTY</a> (Windows).**
 
-To check your code syntax for errors:
+1. To check your code syntax for errors:
 > vagrant@debian:~$ cd /path/to/custom/code/directory
 
 > vagrant@debian:~$ drupalcs my_custom_module/
 
-To automatically fix code syntax errors:
+2. To automatically fix code syntax errors:
 > vagrant@debian:~$ cd /path/to/custom/code/directory
 
 > vagrant@debian:~$ drupalcbf my_custom_module/
 
-To spell check your code for errors:
+3. To spell check your code for errors:
 > vagrant@debian ~$ codespell-install
 
 > vagrant@debian:~$ cd /path/to/custom/code/directory
 
 > vagrant@debian:~$ codespell my_custom_module/
 
-To examine your database:
+4. To examine your database:
 > vagrant@debian ~$ phpmyadmin-install
 
 > Browse to http://192.168.33.10/phpmyadmin and login with Username: drupal and Password: drupal
 
-To update all composer installed apps (drush, terminus, etc.):
+5. To update all composer installed apps (drush, terminus, etc.):
 > vagrant@debian ~$ composer-up
 
-To get the ip address of the server:
+6. To get the ip address of the server:
 > vagrant@debian ~$ ip
 
-A warning about synced folders:
+7. A warning about synced folders:
 > If you want to reinstall a site using site-install and you have enabled synced folders, you should clear out your synced folder locally beforehand, otherwise you may notice errors when the script attempts to remove existing files.
 
 Faq
