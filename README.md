@@ -138,11 +138,21 @@ is properly installed on your system and available on the PATH.
 If you get a message that states GuestAdditions are missing or not matching the host version during vagrant up, try the following:
 > $ cd /path/to/pantheon-local-drupal-development
 
-> $ cp "C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso" .
+> $ cp "C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso" . <- Don't forget the trailing dot
 
 > $ vagrant reload
 
 > $ vagrant ssh
+
+If you installed cwRsync as instructed above, you may get a message similar to the following:
+
+cygwin warning:
+  MS-DOS style path detected: .../.vagrant/machines/default/virtualbox/private_key
+  Preferred POSIX equivalent is: .../.vagrant/machines/default/virtualbox/private_key
+  CYGWIN environment variable option "nodosfilewarning" turns off this warning.
+  Consult the user's guide for more details about POSIX paths:
+    http://cygwin.com/cygwin-ug-net/using.html#using-pathnames
+
 
 *If you don't get a vagrant@debian:~$ prompt, press Ctrl+C and try connecting via iTerm 2 (MAC) or PuTTY (Windows).  See Tips section below for more details.*
 
