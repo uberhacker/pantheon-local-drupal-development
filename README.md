@@ -84,6 +84,12 @@ If the second or third arguments are omitted, the default values are error and t
 To download the latest database and upload to your local database:
 > vagrant@debian:~$ site-db *site*
 
+To download the latest files backup to your local environment:
+> vagrant@debian:~$ site-files *site*
+
+To download the latest code, files and database backup to your local environment:
+> vagrant@debian:~$ site-sync *site*
+
 To list hosts:
 > $ hosts.sh list
 
