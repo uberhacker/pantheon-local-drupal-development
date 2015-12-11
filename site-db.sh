@@ -10,17 +10,17 @@ if test $1; then
 
   # Check for prerequisites
   GIT=$(which git)
-  if [ -z "$GIT" ]; then
+  if [ $? == 1 ]; then
     echo "Git is not installed.  See https://github.com/git/git."
     exit
   fi
   TERMINUS=$(which terminus)
-  if [ -z "$TERMINUS" ]; then
+  if [ $? == 1 ]; then
     echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
     exit
   fi
   DRUSH=$(which drush)
-  if [ -z "$DRUSH" ]; then
+  if [ $? == 1 ]; then
     echo "Drush is not installed.  See http://www.drush.org/en/master/install."
     exit
   fi
@@ -164,6 +164,8 @@ if test $1; then
   if [ ! -z "$MULTISITE" ]; then
     DRUSH="$DRUSH -l $MULTISITE"
   fi
+
+  # Download the latest database backup
   cd /var/www/$SITENAME
   DB="$ENV-$SITENAME.sql"
   rm -f $DB $DB.gz
@@ -183,46 +185,6 @@ if test $1; then
   $DRUSH sqlq "update users set name = 'admin' where uid = 1"
   $DRUSH upwd admin --password=admin
   $DRUSH rr
-
-  # Prompt to enable Stage File Proxy
-  echo -n "Would you like to enable Stage File Proxy? (Y/n): "; read -n 1 PROXY
-  echo ""
-  if [ -z "$PROXY" ]; then
-    PROXY=y
-  fi
-  if [ "$PROXY" == "Y" ]; then
-    PROXY=y
-  fi
-  if [ "$PROXY" == "y" ]; then
-    $DRUSH dl -n stage_file_proxy
-    $DRUSH en -y stage_file_proxy
-    DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
-    if [ ! -z "$DOMAIN" ]; then
-      $DRUSH vset stage_file_proxy_hotlink 1
-      if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
-        $DRUSH vset stage_file_proxy_origin "https://$HTTPUSER:$HTTPPASS@$DOMAIN"
-      else
-        $DRUSH vset stage_file_proxy_origin "https://$DOMAIN"
-      fi
-    fi
-  else
-    echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
-    cd /var/www/$SITENAME/sites/$MULTISITE/files
-    FILES=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=files --latest)
-    if [ ! -z "$FILES" ]; then
-      LABEL=${FILES:0:11}
-      if [ "$LABEL" == "Backup URL:" ]; then
-        FILES=${FILES:12}
-      fi
-      curl -o dev-$SITENAME-files.tar.gz $FILES
-      tar zxvf dev-$SITENAME-files.tar.gz
-      sudo cp -r files_dev/* .
-      sudo rm -rf files_dev/
-      cd ..
-      sudo chown -R vagrant:www-data files/
-      sudo chmod -R g+w files/
-    fi
-  fi
 else
   echo ""
   echo "Purpose: Downloads the latest database and uploads to your local database"
