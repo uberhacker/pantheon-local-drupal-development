@@ -198,7 +198,7 @@ Tips
 **To examine your database:**
 > vagrant@debian ~$ phpmyadmin-install
 
-> Browse to http://192.168.33.10/phpmyadmin and login with Username: drupal and Password: drupal
+> Browse to http://192.168.33.10:8080 and login with Username: drupal and Password: drupal
 
 **To update all composer installed apps (drush, terminus, etc.):**
 > vagrant@debian ~$ composer-up
