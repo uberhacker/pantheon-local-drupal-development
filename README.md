@@ -172,6 +172,8 @@ is properly installed on your system and available on the PATH.
 
 > $ vagrant reload
 
+**If you are unable to launch http://site.dev in your browser after vagrant up in Windows 10, try reinstalling VirtualBox to get the bridged network working again.**
+
 Tips
 ----
 **Use iTerm 2 (MAC) or PuTTY (Windows) to connect via 192.168.33.10 with username vagrant and password vagrant to improve your terminal experience.**
