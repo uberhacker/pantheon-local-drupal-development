@@ -39,6 +39,13 @@ Vagrant.configure(2) do |config|
   # argument is a set of non-required options.
   # config.vm.synced_folder "../data", "/vagrant_data"
 
+  # SSH Agent Forwarding
+  #
+  # Enable agent forwarding on vagrant ssh commands. This allows you to use ssh keys
+  # on your host machine inside the guest. See the manual for `ssh-add`.
+  # config.ssh.private_key_path = '~/.ssh/id_rsa'
+  # config.ssh.forward_agent = true
+
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
@@ -125,7 +132,7 @@ alias drupalcs="phpcs --standard=$HOME/.composer/vendor/drupal/coder/coder_sniff
 alias drupalcbf="phpcbf --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias git-config='/vagrant/git-config.sh'
 alias ssh-config='/vagrant/ssh-config.sh'
-alias restart-lamp='/vagrant/restart-lamp.sh'
+alias restart-lemp='/vagrant/restart-lemp.sh'
 alias site-fix='/vagrant/site-fix.sh'
 alias site-install='/vagrant/site-install.sh'
 alias site-log='/vagrant/site-log.sh'
