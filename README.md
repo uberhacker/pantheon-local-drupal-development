@@ -70,8 +70,8 @@ On site-install, if you don't provide *site*, *profile* or *multisite*, you will
 
 Maintenance
 -----------
-To restart the LAMP stack:
-> vagrant@debian:~$ restart-lamp
+To restart the LEMP stack:
+> vagrant@debian:~$ restart-lemp
 
 To repair the database and file permissions:
 > vagrant@debian:~$ site-fix *site*
@@ -207,6 +207,9 @@ Tips
 
 **To get the ip address of the server:**
 > vagrant@debian ~$ ip
+
+**To adjust the VM resources:**
+> If your host system supports it, you can increase the vb.cpus and vb.memory values in Vagrantfile to improve performance of the VM.  Remember to vagrant reload after making changes.
 
 **A warning about synced folders:**
 > If you want to reinstall a site using site-install and you have enabled synced folders, you should clear out your synced folder locally beforehand, otherwise you may notice errors when the script attempts to remove existing files.
