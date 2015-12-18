@@ -2,17 +2,17 @@
 
 # Check for prerequisites
 GIT=$(which git)
-if [ -z "$GIT" ]; then
+if [ $? == 1 ]; then
   echo "Git is not installed.  See https://github.com/git/git."
   exit
 fi
 TERMINUS=$(which terminus)
-if [ -z "$TERMINUS" ]; then
+if [ $? == 1 ]; then
   echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
   exit
 fi
 DRUSH=$(which drush)
-if [ -z "$DRUSH" ]; then
+if [ $? == 1 ]; then
   echo "Drush is not installed.  See http://www.drush.org/en/master/install."
   exit
 fi
