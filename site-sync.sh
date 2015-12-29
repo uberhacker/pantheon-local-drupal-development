@@ -212,7 +212,7 @@ if [ ! -z $SITENAME ]; then
   # Download the latest database backup
   DB="$ENV-$SITENAME.sql"
   rm -f $DB $DB.gz
-  LATEST=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=db --latest)
+  LATEST=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=db --latest)
   if [ ! -z "$LATEST" ]; then
     LABEL=${LATEST:0:11}
     if [ "$LABEL" == "Backup URL:" ]; then
@@ -241,7 +241,7 @@ if [ ! -z $SITENAME ]; then
   if [ "$PROXY" == "y" ]; then
     $DRUSH dl -n stage_file_proxy
     $DRUSH en -y stage_file_proxy
-    DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
+    DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=$ENV) | cut -d" " -f4)
     if [ ! -z "$DOMAIN" ]; then
       $DRUSH vset stage_file_proxy_hotlink 1
       if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
@@ -253,7 +253,7 @@ if [ ! -z $SITENAME ]; then
   else
     echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
     cd /var/www/$SITENAME/sites/$MULTISITE/files
-    FILES=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=files --latest)
+    FILES=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=files --latest)
     if [ ! -z "$FILES" ]; then
       LABEL=${FILES:0:11}
       if [ "$LABEL" == "Backup URL:" ]; then
@@ -272,6 +272,11 @@ else
   echo ""
   echo "Purpose: Downloads the latest code, files and database to your local environment"
   echo ""
-  echo "Usage: $0 site where site is a valid Nginx virtual host or Pantheon Site Name"
+  echo "Usage: $0 [site] [env] where [site] is a"
+  echo "       valid Nginx virtual host or Pantheon Site Name"
+  echo "       and [env] is the environment (dev, test or live)."
+  echo ""
+  echo "       The default [site] is the current Drupal root"
+  echo "       and the default [env] is dev."
   echo ""
 fi
