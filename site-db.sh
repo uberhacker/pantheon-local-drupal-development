@@ -1,27 +1,49 @@
 #!/bin/bash
-if test $1; then
-  # Check if the site directory exists.
-  if [ ! -d "/var/www/$1" ]; then
-    echo "$1 is not a valid site."
-    exit
-  fi
-  SITENAME=$1
-  ENV=dev
 
-  # Check for prerequisites
-  GIT=$(which git)
-  if [ $? == 1 ]; then
-    echo "Git is not installed.  See https://github.com/git/git."
+# Check for prerequisites
+GIT=$(which git)
+if [ $? == 1 ]; then
+  echo "Git is not installed.  See https://github.com/git/git."
+  exit
+fi
+TERMINUS=$(which terminus)
+if [ $? == 1 ]; then
+  echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
+  exit
+fi
+DRUSH=$(which drush)
+if [ $? == 1 ]; then
+  echo "Drush is not installed.  See http://www.drush.org/en/master/install."
+  exit
+fi
+
+# Get the Pantheon site name
+SITENAME=""
+ROOT=$($DRUSH status root --format=list)
+if [ ! -z $ROOT ]; then
+  BASE=${ROOT:0:8}
+  if [ $BASE == "/var/www" ]; then
+    SITENAME=${ROOT:9}
+  fi
+fi
+if test $1; then
+  SITENAME=$1
+fi
+
+# Set the environment
+ENV=dev
+if test $2; then
+  ENV=$2
+  if [[ $2 != "dev" && $2 != "test" && $2 != "live" ]]; then
+    echo "Invalid environment $ENV."
     exit
   fi
-  TERMINUS=$(which terminus)
-  if [ $? == 1 ]; then
-    echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
-    exit
-  fi
-  DRUSH=$(which drush)
-  if [ $? == 1 ]; then
-    echo "Drush is not installed.  See http://www.drush.org/en/master/install."
+fi
+
+if [ ! -z $SITENAME ]; then
+  # Check if the site directory exists
+  if [ ! -d "/var/www/$SITENAME" ]; then
+    echo "$SITENAME is not a valid site."
     exit
   fi
 
@@ -169,13 +191,13 @@ if test $1; then
   cd /var/www/$SITENAME
   DB="$ENV-$SITENAME.sql"
   rm -f $DB $DB.gz
-  LATEST=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=db --latest)
+  LATEST=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=db --latest)
   if [ ! -z "$LATEST" ]; then
     LABEL=${LATEST:0:11}
     if [ "$LABEL" == "Backup URL:" ]; then
       LATEST=${LATEST:12}
     fi
-    echo "Downloading the latest database backup to $DB ..."
+    echo "Downloading $LATEST to $DB ..."
     curl -o $DB.gz $LATEST && gunzip $DB.gz
     $DRUSH sql-drop -y
     echo "Loading $DB ..."
@@ -189,6 +211,11 @@ else
   echo ""
   echo "Purpose: Downloads the latest database and uploads to your local database"
   echo ""
-  echo "Usage: $0 site where site is a valid Nginx virtual host or Pantheon Site Name"
+  echo "Usage: $0 [site] [env] where [site] is a"
+  echo "       valid Nginx virtual host or Pantheon Site Name"
+  echo "       and [env] is the environment (dev, test or live)."
+  echo ""
+  echo "       The default [site] is the current Drupal root"
+  echo "       and the default [env] is dev."
   echo ""
 fi
