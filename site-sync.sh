@@ -1,12 +1,52 @@
 #!/bin/bash
+
+# Check for prerequisites
+GIT=$(which git)
+if [ $? == 1 ]; then
+  echo "Git is not installed.  See https://github.com/git/git."
+  exit
+fi
+TERMINUS=$(which terminus)
+if [ $? == 1 ]; then
+  echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
+  exit
+fi
+DRUSH=$(which drush)
+if [ $? == 1 ]; then
+  echo "Drush is not installed.  See http://www.drush.org/en/master/install."
+  exit
+fi
+
+# Get the Pantheon site name
+SITENAME=""
 if test $1; then
-  # Check if the site directory exists.
-  if [ ! -d "/var/www/$1" ]; then
-    echo "$1 is not a valid site."
+  SITENAME=$1
+else
+  ROOT=$($DRUSH status root --format=list)
+  if [ ! -z $ROOT ]; then
+    BASE=${ROOT:0:8}
+    if [ $BASE == "/var/www" ]; then
+      SITENAME=${ROOT:9}
+    fi
+  fi
+fi
+
+# Set the environment
+ENV=dev
+if test $2; then
+  ENV=$2
+  if [[ $2 != "dev" && $2 != "test" && $2 != "live" ]]; then
+    echo "Invalid environment $ENV."
     exit
   fi
-  SITENAME=$1
-  ENV=dev
+fi
+
+if [ ! -z $SITENAME ]; then
+  # Check if the site directory exists
+  if [ ! -d "/var/www/$SITENAME" ]; then
+    echo "$SITENAME is not a valid site."
+    exit
+  fi
 
   # Check for prerequisites
   GIT=$(which git)
