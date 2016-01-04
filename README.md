@@ -157,7 +157,7 @@ is properly installed on your system and available on the PATH.
 **If you get a message that states GuestAdditions are missing or not matching the host version during vagrant up, try the following:**
 > $ cd /path/to/pantheon-local-drupal-development
 
-> $ cp "C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso" . <- Don't forget the trailing dot
+> $ cp "C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso" . <<< Don't forget the trailing dot
 
 > $ vagrant reload
 
@@ -169,7 +169,25 @@ is properly installed on your system and available on the PATH.
 
 > vagrant@debian:~$ cd /media/vb
 
-> vagrant@debian:~$ sudo ./VBoxLinuxAdditions.run (and follow the instructions)
+> vagrant@debian:~$ sudo ./VBoxLinuxAdditions.run
+
+> vagrant@debian:~$ exit
+
+> $ vagrant reload
+
+Alternatively, you could install from the iso on the VM if you know the host version is the same.
+
+Just replace /vagrant/VBoxGuestAdditions.iso with /usr/share/virtualbox/VBoxGuestAdditions.iso on the mount line above.
+
+Follow the steps below:
+
+> vagrant@debian:~$ sudo mkdir /media/vb
+
+> vagrant@debian:~$ sudo mount -t iso9660 -o loop /usr/share/virtualbox/VBoxGuestAdditions.iso /media/vb
+
+> vagrant@debian:~$ cd /media/vb
+
+> vagrant@debian:~$ sudo ./VBoxLinuxAdditions.run
 
 > vagrant@debian:~$ exit
 
