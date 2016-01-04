@@ -151,6 +151,9 @@ is properly installed on your system and available on the PATH.
 
 > *If you don't get a vagrant@debian:~$ prompt, press Ctrl+C and try connecting via iTerm 2 (MAC) or PuTTY (Windows).  See Tips section below for more details.*
 
+**If rsync still doesn't work with Vagrant 1.8:**
+> See this workaround: https://github.com/mitchellh/vagrant/issues/6702#issuecomment-166503021
+
 **If you get a message that states GuestAdditions are missing or not matching the host version during vagrant up, try the following:**
 > $ cd /path/to/pantheon-local-drupal-development
 
