@@ -491,7 +491,7 @@ EOF
     $DRUSH dis -y overlay
 
     # Restart web services
-    /vagrant/restart-lamp.sh
+    /vagrant/restart-lemp.sh
 
     # Output final message
     echo ""

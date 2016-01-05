@@ -6,4 +6,4 @@ if [ ! -z "$XHPROF" ]; then
 fi
 echo "Installing XHProf..."
 sudo apt-get install php5-xhprof -y
-/vagrant/restart-lamp.sh
+/vagrant/restart-lemp.sh

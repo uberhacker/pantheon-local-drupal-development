@@ -20,4 +20,4 @@ xdebug.remote_handler="dbgp"
 xdebug.remote_log="/var/log/xdebug/xdebug.log"
 xdebug.remote_host="192.168.33.10"
 EOF'
-/vagrant/restart-lamp.sh
+/vagrant/restart-lemp.sh

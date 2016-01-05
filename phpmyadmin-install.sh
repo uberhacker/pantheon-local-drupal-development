@@ -29,5 +29,5 @@ server {
 }
 EOF'
 sudo ln -s /etc/nginx/sites-available/phpmyadmin /etc/nginx/sites-enabled/phpmyadmin
-/vagrant/restart-lamp.sh
+/vagrant/restart-lemp.sh
 echo "Browse to http://192.168.33.10:8080 and login with Username: drupal and Password: drupal"
