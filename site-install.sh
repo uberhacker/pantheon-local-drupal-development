@@ -25,11 +25,6 @@ fi
 ENV=dev
 if test $2; then
   ENV=$2
-  $TERMINUS site environment-info --site=$SITENAME --env=$ENV --field=id
-  if [ $? == 1 ]; then
-    $TERMINUS site environments --site=$SITENAME
-    exit
-  fi
 fi
 PROFILE=""
 if test $3; then
@@ -152,6 +147,13 @@ if [ "$LABEL" == "id:" ]; then
   ID=${ID:4}
 fi
 
+# Validate the Pantheon environment
+GIT_CMD=$($TERMINUS site connection-info --site=$SITENAME --env=$ENV --field=git_command)
+if [ $? == 1 ]; then
+  echo "$ENV is not a cloneable Pantheon environment."
+  exit
+fi
+
 # Remove existing site files if they exist
 if [ -d /var/www/$SITENAME ]; then
   sudo rm -rf /var/www/$SITENAME
@@ -159,7 +161,7 @@ fi
 
 # Clone the Pantheon git repository
 cd /var/www
-$GIT clone "ssh://codeserver.$ENV.$ID@codeserver.$ENV.$ID.drush.in:2222/~/repository.git" $SITENAME
+$GIT_CMD
 if [ -d /var/www/$SITENAME ]; then
   DBNAME=${SITENAME//-/_}
   if [ ! -f /etc/nginx/sites-available/$SITENAME ]; then
@@ -405,7 +407,7 @@ if [ -d /var/www/$SITENAME ]; then
           REDISLOCK=$(find sites/ -name redis.lock.inc)
         fi
         $DRUSH en -y redis
-        $REDIS_CONFIG=$(grep "Use Redis for caching." $LOCALSETTINGS)
+        REDIS_CONFIG=$(grep "Use Redis for caching." $LOCALSETTINGS)
         if [ -z "$REDIS_CONFIG" ]; then
 cat << EOF >> $LOCALSETTINGS
 // Use Redis for caching.
@@ -515,6 +517,13 @@ EOF
 
     # Disable unused/unwanted modules
     $DRUSH dis -y overlay
+
+    # Disable cron
+    ELYSIA=$($DRUSH pml --status=Enabled | grep elysia_cron)
+    if [ ! -z "$ELYSIA" ]; then
+      $DRUSH vset elysia_cron_disabled 1
+    fi
+    $DRUSH vset cron_safe_threshold 0
 
     # Restart web services
     /vagrant/restart-lemp.sh
