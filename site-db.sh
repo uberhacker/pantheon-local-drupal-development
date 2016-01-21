@@ -34,8 +34,9 @@ fi
 ENV=dev
 if test $2; then
   ENV=$2
-  if [[ $2 != "dev" && $2 != "test" && $2 != "live" ]]; then
-    echo "Invalid environment $ENV."
+  $TERMINUS site environment-info --site=$SITENAME --env=$ENV --field=id
+  if [ $? == 1 ]; then
+    $TERMINUS site environments --site=$SITENAME
     exit
   fi
 fi
