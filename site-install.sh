@@ -22,13 +22,22 @@ SITENAME=""
 if test $1; then
   SITENAME=$1
 fi
-PROFILE=""
+ENV=dev
 if test $2; then
-  PROFILE=$2
+  ENV=$2
+  $TERMINUS site environment-info --site=$SITENAME --env=$ENV --field=id
+  if [ $? == 1 ]; then
+    $TERMINUS site environments --site=$SITENAME
+    exit
+  fi
+fi
+PROFILE=""
+if test $3; then
+  PROFILE=$3
 fi
 MULTISITE="default"
-if test $3; then
-  MULTISITE=$3
+if test $4; then
+  MULTISITE=$4
 fi
 
 # Retrieve stored Terminus credentials
@@ -58,8 +67,7 @@ fi
 
 # Terminus authentication prompts
 WHOAMI=$($TERMINUS auth whoami)
-AUTHENTICATED=${WHOAMI:0:25}
-if [ "$AUTHENTICATED" != "You are authenticated as:" ]; then
+if [ $? == 1 ]; then
   if [ -z "$EMAIL" ]; then
     echo -n "Enter your Pantheon dashboard email address: "; read EMAIL
     if [ -z "$EMAIL" ]; then
@@ -115,8 +123,7 @@ fi
 
 # Remove saved credentials if unable to login
 WHOAMI=$($TERMINUS auth whoami)
-AUTHENTICATED=${WHOAMI:0:25}
-if [ "$AUTHENTICATED" != "You are authenticated as:" ]; then
+if [ $? == 1 ]; then
   if [ -f $HOME/.terminus_auth ]; then
     rm -f $HOME/.terminus_auth
   fi
@@ -152,7 +159,7 @@ fi
 
 # Clone the Pantheon git repository
 cd /var/www
-$GIT clone "ssh://codeserver.dev.$ID@codeserver.dev.$ID.drush.in:2222/~/repository.git" $SITENAME
+$GIT clone "ssh://codeserver.$ENV.$ID@codeserver.$ENV.$ID.drush.in:2222/~/repository.git" $SITENAME
 if [ -d /var/www/$SITENAME ]; then
   DBNAME=${SITENAME//-/_}
   if [ ! -f /etc/nginx/sites-available/$SITENAME ]; then
@@ -347,43 +354,59 @@ if [ -d /var/www/$SITENAME ]; then
     fi
 
     # Download and load the latest database backup if it exists
-    DB=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=db --latest)
+    DB=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=db --latest)
     if [ ! -z "$DB" ]; then
       LABEL=${DB:0:11}
       if [ "$LABEL" == "Backup URL:" ]; then
         DB=${DB:12}
       fi
-      echo "Downloading latest database backup to dev-$SITENAME.sql.gz..."
-      curl -o dev-$SITENAME.sql.gz $DB
-      gunzip dev-$SITENAME.sql.gz
+      NEW_DB=$ENV-$SITENAME.sql
+      echo "Downloading latest database backup $DB to $NEW_DB.gz..."
+      curl -o $NEW_DB.gz $DB
+      gunzip $NEW_DB.gz
       $DRUSH sql-drop -y
-      echo "Loading dev-$SITENAME.sql..."
-      $DRUSH sqlc < dev-$SITENAME.sql
+      echo "Loading $NEW_DB..."
+      $DRUSH sqlc < $NEW_DB
       # Make sure the Drupal admin user login is admin/admin
       $DRUSH sqlq "update users set name = 'admin' where uid = 1"
       $DRUSH upwd admin --password=admin
       $DRUSH rr
     fi
 
-    # Prompt to enable Redis
-    echo ""
-    echo -n "Would you like to enable Redis? (Y/n): "; read -n 1 REDIS
-    echo ""
-    if [ -z "$REDIS" ]; then
-      REDIS=y
+    # Make sure the Redis service is running
+    REDIS_PID=$(pidof redis-server)
+    if [ -z "$REDIS_PID" ]; then
+      REDIS_PACKAGE=$(dpkg -l | grep redis-server)
+      if [ -z "$REDIS_PACKAGE" ]; then
+        sudo apt-get install redis-server -y
+      else
+        sudo service redis-server start
+      fi
     fi
-    if [ "$REDIS" == "Y" ]; then
-      REDIS=y
-    fi
-    if [ "$REDIS" == "y" ]; then
-      REDISAUTOLOAD=$(find sites/ -name redis.autoload.inc)
-      REDISLOCK=$(find sites/ -name redis.lock.inc)
-      if [[ -z "$REDISAUTOLOAD" || -z "$REDISLOCK" ]]; then
-        $DRUSH dl -y redis
+
+    # Prompt to enable Redis only if the service is running
+    REDIS_PID=$(pidof redis-server)
+    if [ ! -z "$REDIS_PID" ]; then
+      echo ""
+      echo -n "Would you like to enable Redis? (Y/n): "; read -n 1 REDIS
+      echo ""
+      if [ -z "$REDIS" ]; then
+        REDIS=y
+      fi
+      if [ "$REDIS" == "Y" ]; then
+        REDIS=y
+      fi
+      if [ "$REDIS" == "y" ]; then
         REDISAUTOLOAD=$(find sites/ -name redis.autoload.inc)
         REDISLOCK=$(find sites/ -name redis.lock.inc)
-      fi
-      $DRUSH en -y redis
+        if [[ -z "$REDISAUTOLOAD" || -z "$REDISLOCK" ]]; then
+          $DRUSH dl -y redis
+          REDISAUTOLOAD=$(find sites/ -name redis.autoload.inc)
+          REDISLOCK=$(find sites/ -name redis.lock.inc)
+        fi
+        $DRUSH en -y redis
+        $REDIS_CONFIG=$(grep "Use Redis for caching." $LOCALSETTINGS)
+        if [ -z "$REDIS_CONFIG" ]; then
 cat << EOF >> $LOCALSETTINGS
 // Use Redis for caching.
 \$conf['redis_client_interface'] = 'PhpRedis';
@@ -394,6 +417,8 @@ cat << EOF >> $LOCALSETTINGS
 // Use Redis for Drupal locks (semaphore).
 \$conf['lock_inc'] = '$REDISLOCK';
 EOF
+        fi
+      fi
     fi
 
     # Prompt to enable XHProf
@@ -406,7 +431,7 @@ EOF
     if [ "$XHPROF" == "y" ]; then
       XHPROF_MOD=$(dpkg -l | grep php5-xhprof)
       if [ -z "$XHPROF_MOD" ]; then
-        source /vagrant/xhprof-install.sh
+        /vagrant/xhprof-install.sh
       fi
       XHPROF_PATH="/var/www/$SITENAME/sites/all/modules/contrib/xhprof"
       if [ ! -d "$XHPROF_PATH" ]; then
@@ -438,7 +463,7 @@ EOF
         XDEBUG=y
       fi
       if [ "$XDEBUG" == "y" ]; then
-        source /vagrant/xdebug-install.sh
+        /vagrant/xdebug-install.sh
       fi
     fi
 
@@ -455,7 +480,7 @@ EOF
     if [ "$PROXY" == "y" ]; then
       $DRUSH dl -n stage_file_proxy
       $DRUSH en -y stage_file_proxy
-      DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=dev) | cut -d" " -f4)
+      DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=$ENV) | cut -d" " -f4)
       if [ ! -z "$DOMAIN" ]; then
         $DRUSH vset stage_file_proxy_hotlink 1
         if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
@@ -466,17 +491,18 @@ EOF
       fi
     else
       cd /var/www/$SITENAME/sites/$MULTISITE/files
-      FILES=$($TERMINUS site backups get --site=$SITENAME --env=dev --element=files --latest)
+      FILES=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=files --latest)
       if [ ! -z "$FILES" ]; then
         LABEL=${FILES:0:11}
         if [ "$LABEL" == "Backup URL:" ]; then
           FILES=${FILES:12}
         fi
-        echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
-        curl -o dev-$SITENAME-files.tar.gz $FILES
-        tar zxvf dev-$SITENAME-files.tar.gz
-        cp -r files_dev/* .
-        rm -rf files_dev/
+        NEW_FILES=$ENV-$SITENAME-files.tar.gz
+        echo "Downloading latest files backup $FILES to $NEW_FILES..."
+        curl -o $NEW_FILES $FILES
+        tar zxvf $NEW_FILES
+        cp -r files_$ENV/* .
+        rm -rf files_$ENV/
         cd ..
         sudo chown -R vagrant:www-data files/
         sudo chmod -R g+w files/
