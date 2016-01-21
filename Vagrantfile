@@ -85,8 +85,10 @@ Vagrant.configure(2) do |config|
     sudo add-apt-repository 'deb http://mirrors.kernel.org/debian jessie main contrib non-free'
     sudo add-apt-repository 'deb http://security.debian.org/ jessie/updates main contrib non-free'
     sudo add-apt-repository 'deb http://mirrors.kernel.org/debian jessie-updates main contrib non-free'
+    sudo add-apt-repository 'deb http://download.virtualbox.org/virtualbox/debian jessie contrib'
+    wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
     sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git php5 php5-curl php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server nginx
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git php5 php5-curl php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server nginx virtualbox-5.0
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
     sudo apt-get autoremove --purge -y
     sudo apt-get autoclean -y
