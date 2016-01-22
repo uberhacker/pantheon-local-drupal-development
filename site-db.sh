@@ -150,14 +150,14 @@ if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
   DEFAULTSITE="default"
   cd /var/www/$DIR/sites
   SITES=$(echo $(ls -d */) | sed 's,/,,g')
-  for SITE in $SITES; do
-    if [[ "$SITE" != "all" && -f "/var/www/$DIR/sites/$SITE/settings.php" ]]; then
+  for S in $SITES; do
+    if [[ "$S" != "all" && -f "/var/www/$DIR/sites/$S/settings.php" ]]; then
       if [ -z "$MULTISITES" ]; then
-        MULTISITES="$SITE"
+        MULTISITES="$S"
       else
-        MULTISITES="$MULTISITES $SITE"
+        MULTISITES="$MULTISITES $S"
       fi
-      DEFAULTSITE="$SITE"
+      DEFAULTSITE="$S"
     fi
   done
   if [ "$DEFAULTSITE" == "$MULTISITES" ]; then
