@@ -17,37 +17,42 @@ if [ $? == 1 ]; then
   exit
 fi
 
+# Get the Pantheon site name
+SITE=""
+if test $1; then
+  SITE=$1
+fi
+
 # Get the environment
 ENV=dev
 if test $2; then
   ENV=$2
 fi
 
-# Get the Pantheon site name
-DIR=""
-SITE=""
-if test $1; then
-  SITE=$1
-  DIR=$SITE-$ENV
-  # Check if the site directory exists
-  if [ ! -d "/var/www/$DIR" ]; then
-    echo "$DIR is not a valid site directory."
-    exit
-  fi
-else
-  ROOT=$($DRUSH status root --format=list)
-  if [ ! -z $ROOT ]; then
-    BASE=${ROOT:0:8}
-    if [ $BASE == "/var/www" ]; then
-      DIR=${ROOT:9}
-      END="-$ENV"
-      LEN=${#END}
-      SITE=${DIR:0:(-$LEN)}
-    fi
+# Set the Drupal root directory
+ROOT=$($DRUSH status root --format=list)
+if [ -z $ROOT ]; then
+  ROOT=/var/www/$SITE-$ENV
+fi
+
+# Validate the Drupal root directory
+if [ ! -d $ROOT ]; then
+  echo "The Pantheon site cannot be located."
+  exit
+fi
+
+# Get the Pantheon site name from Drupal root
+if [ -z $SITE ]; then
+  BASE=${ROOT:0:8}
+  if [ $BASE == "/var/www" ]; then
+    DIR=${ROOT:9}
+    END="-$ENV"
+    LEN=${#END}
+    SITE=${DIR:0:(-$LEN)}
   fi
 fi
 
-if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
+if [ ! -z $SITE ]; then
   # Validate the environment
   $TERMINUS site environment-info --site=$SITE --env=$ENV --field=id
   if [ $? == 1 ]; then
