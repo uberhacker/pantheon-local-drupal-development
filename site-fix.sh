@@ -1,10 +1,31 @@
 #!/bin/bash
+# Get the environment
+ENV=dev
+if test $2; then
+  ENV=$2
+fi
+
+# Get the Pantheon Site Name
 if test $1; then
-  SITENAME=$1
-  if [ ! -d /var/www/$SITENAME ]; then
-    echo "$SITENAME is not a valid site."
+  SITE=$1
+  DIR=$SITE-$ENV
+  if [ ! -d /var/www/$DIR ]; then
+    echo "$DIR is not a valid site directory."
     exit
   fi
+else
+  ROOT=$(drush status root --format=list)
+  if [ ! -z $ROOT ]; then
+    BASE=${ROOT:0:8}
+    if [ $BASE == "/var/www" ]; then
+      DIR=${ROOT:9}
+      END="-$ENV"
+      LEN=${#END}
+      SITE=${DIR:0:(-$LEN)}
+    fi
+  fi
+fi
+if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
   if [ ! -f $HOME/.drush/registry_rebuild/registry_rebuild.php ]; then
     drush dl registry_rebuild -y
     drush cc drush
@@ -13,16 +34,16 @@ if test $1; then
   # Set multisite
   MULTISITES=""
   DEFAULTSITE="default"
-  cd /var/www/$SITENAME/sites
+  cd /var/www/$DIR/sites
   SITES=$(echo $(ls -d */) | sed 's,/,,g')
-  for SITE in $SITES; do
-    if [[ "$SITE" != "all" && -f "/var/www/$SITENAME/sites/$SITE/settings.php" ]]; then
+  for S in $SITES; do
+    if [[ "$S" != "all" && -f "/var/www/$DIR/sites/$S/settings.php" ]]; then
       if [ -z "$MULTISITES" ]; then
-        MULTISITES="$SITE"
+        MULTISITES="$S"
       else
-        MULTISITES="$MULTISITES $SITE"
+        MULTISITES="$MULTISITES $S"
       fi
-      DEFAULTSITE="$SITE"
+      DEFAULTSITE="$S"
     fi
   done
   if [ "$DEFAULTSITE" == "$MULTISITES" ]; then
@@ -50,20 +71,20 @@ if test $1; then
       exit
     fi
   fi
-  cd /var/www/$SITENAME
+  cd /var/www/$DIR
   # Make sure the directory is writable by Nginx so files can be saved.
   sudo chown -R vagrant:www-data sites/$MULTISITE/files
   sudo chmod -R g+w sites/$MULTISITE/files
   # Make sure the directory is writable by Nginx so features can be exported.
-  if [ -d "/var/www/$SITENAME/sites/$MULTISITE/features" ]; then
+  if [ -d "/var/www/$DIR/sites/$MULTISITE/features" ]; then
     sudo chown -R vagrant:www-data sites/$MULTISITE/features
     sudo chmod -R g+w sites/$MULTISITE/features
   fi
-  if [ -d "/var/www/$SITENAME/sites/$MULTISITE/modules/features" ]; then
+  if [ -d "/var/www/$DIR/sites/$MULTISITE/modules/features" ]; then
     sudo chown -R vagrant:www-data sites/$MULTISITE/modules/features
     sudo chmod -R g+w sites/$MULTISITE/modules/features
   fi
-  if [ -d "/var/www/$SITENAME/sites/$MULTISITE/modules/custom/features" ]; then
+  if [ -d "/var/www/$DIR/sites/$MULTISITE/modules/custom/features" ]; then
     sudo chown -R vagrant:www-data sites/$MULTISITE/modules/custom/features
     sudo chmod -R g+w sites/$MULTISITE/modules/custom/features
   fi
@@ -72,6 +93,11 @@ else
   echo ""
   echo "Purpose: Repairs the site database and file permissions"
   echo ""
-  echo "Usage: $0 site where site is a valid Nginx virtual host or Pantheon Site Name"
+  echo "Usage: $0 [site] [env] where [site] is a"
+  echo "       valid Nginx virtual host or Pantheon Site Name"
+  echo "       and [env] is the environment (dev, test or live)."
+  echo ""
+  echo "       The default [site] is the current Drupal root"
+  echo "       and the default [env] is dev."
   echo ""
 fi
