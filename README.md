@@ -24,7 +24,7 @@ See [Configure Applications to Always Run as an Administrator](https://technet.m
 
 Although not necessary, if you want to open VirtualBox, you should also run as administrator.
 
-**Replace *site* with the Pantheon Site Name.**
+**Replace *site* with the Pantheon Site Name and optionally *[env]* with the environment.**
 
 > $ git config --global core.autocrlf false  **This step is important**
 
@@ -44,9 +44,9 @@ Although not necessary, if you want to open VirtualBox, you should also run as a
 
 > vagrant@debian:~$ exit
 
-> $ hosts.sh add *site*
+> $ hosts.sh add *site* *[env]*
 
-Visit http://*site*.dev in your favorite browser.  Enjoy.
+Visit http://*site*-*env*.site in your favorite browser (Example: http://my-pantheon-dev.site where my-pantheon is the Pantheon Site Name and dev is the environment). Enjoy.
 
 Usage
 -----
@@ -61,12 +61,13 @@ Once the VM has been provisioned, if you want to create additional sites, simply
 > vagrant@debian:~$ site-install *site* *env* *profile* *multisite*
 
 **Replace *site* with the Pantheon Site Name, *env* with the environment, *profile* with the Drupal install profile and *multisite* with the Drupal multisite domain**
+On site-install, if you don't provide *site*, *env*, *profile* or *multisite*, you will be prompted to enter the appropriate values if needed.
 
 > vagrant@debian:~$ exit
 
-> $ hosts.sh add *site*
+> $ hosts.sh add *site* *[env]*
 
-On site-install, if you don't provide *site*, *profile* or *multisite*, you will be prompted to enter the appropriate values if needed.
+The default value for *env* is dev.  The only time you would want to provide *env* is if you are installing a multi-dev site.
 
 Maintenance
 -----------
@@ -77,18 +78,19 @@ To repair the database and file permissions:
 > vagrant@debian:~$ site-fix *site*
 
 To display the Nginx logs:
-> vagrant@debian:~$ site-log *site* [access|error] [less|tail]
+> vagrant@debian:~$ site-log *site* *env* [access|error] [less|tail]
 
-If the second or third arguments are omitted, the default values are error and tail.
+The *site* and *env* arguments are not needed if you are within the Drupal root directory and want to accept the defaults.
+The default value for *env* is dev.  If the third or fourth arguments are omitted, the default values are error and tail.
 
 To download the latest database and upload to your local database:
-> vagrant@debian:~$ site-db *site*
+> vagrant@debian:~$ site-db *site* *env*
 
 To download the latest files backup to your local environment:
-> vagrant@debian:~$ site-files *site*
+> vagrant@debian:~$ site-files *site* *env*
 
 To download the latest code, files and database backup to your local environment:
-> vagrant@debian:~$ site-sync *site*
+> vagrant@debian:~$ site-sync *site* *env*
 
 To list hosts:
 > $ hosts.sh list
@@ -193,7 +195,7 @@ Follow the steps below:
 
 > $ vagrant reload
 
-**If you are unable to launch http://site.dev in your browser after vagrant up in Windows 10, try reinstalling VirtualBox to get the bridged network working again.**
+**If you are unable to bring up the site in your browser after vagrant up in Windows 10, try reinstalling VirtualBox to get the bridged network working again.**
 
 Tips
 ----
@@ -242,9 +244,14 @@ Q. Can I install more than one site?
 A. Absolutely.  Just execute site-install and make sure the site name is not the same as an existing site, otherwise, it will be overwrote.  Also, the site must first exist in your Pantheon dashboard.
 
 
+Q. Can I install a multi-dev site?
+
+A. Absolutely.  Just make sure the site already exists in your Pantheon dashboard and include the multi-site name in the *env* argument.
+
+
 Q. Where do I access my site on the server?
 
-A. All sites are subdirectories of /var/www.  So if your site is my-site, it would be located at /var/www/my-site.
+A. All sites are subdirectories of /var/www.  So if your site is a dev environment of my-site, it would be located at /var/www/my-site-dev.
 
 
 Q. Where is Solr?
