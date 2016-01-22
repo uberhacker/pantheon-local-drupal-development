@@ -17,37 +17,42 @@ if [ $? == 1 ]; then
   exit
 fi
 
+# Get the Pantheon site name
+SITE=""
+if test $1; then
+  SITE=$1
+fi
+
 # Get the environment
 ENV=dev
 if test $2; then
   ENV=$2
 fi
 
-# Get the Pantheon site name
-DIR=""
-SITE=""
-if test $1; then
-  SITE=$1
-  DIR=$SITE-$ENV
-  # Check if the site directory exists
-  if [ ! -d "/var/www/$DIR" ]; then
-    echo "$DIR is not a valid site directory."
-    exit
-  fi
-else
-  ROOT=$($DRUSH status root --format=list)
-  if [ ! -z "$ROOT" ]; then
-    BASE=${ROOT:0:8}
-    if [ $BASE == "/var/www" ]; then
-      DIR=${ROOT:9}
-      END="-$ENV"
-      LEN=${#END}
-      SITE=${DIR:0:(-$LEN)}
-    fi
+# Set the Drupal root directory
+ROOT=$($DRUSH status root --format=list)
+if [ -z $ROOT ]; then
+  ROOT=/var/www/$SITE-$ENV
+fi
+
+# Validate the Drupal root directory
+if [ ! -d $ROOT ]; then
+  echo "The Pantheon site cannot be located."
+  exit
+fi
+
+# Get the Pantheon site name from Drupal root
+if [ -z $SITE ]; then
+  BASE=${ROOT:0:8}
+  if [ $BASE == "/var/www" ]; then
+    DIR=${ROOT:9}
+    END="-$ENV"
+    LEN=${#END}
+    SITE=${DIR:0:(-$LEN)}
   fi
 fi
 
-if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
+if [ ! -z $SITE ]; then
   # Validate the environment
   $TERMINUS site environment-info --site=$SITE --env=$ENV --field=id
   if [ $? == 1 ]; then
@@ -148,10 +153,10 @@ if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
   MULTISITE=""
   MULTISITES=""
   DEFAULTSITE="default"
-  cd /var/www/$DIR/sites
+  cd $ROOT/sites
   SITES=$(echo $(ls -d */) | sed 's,/,,g')
   for S in $SITES; do
-    if [[ "$S" != "all" && -f "/var/www/$DIR/sites/$S/settings.php" ]]; then
+    if [[ "$S" != "all" && -f "$ROOT/sites/$S/settings.php" ]]; then
       if [ -z "$MULTISITES" ]; then
         MULTISITES="$S"
       else
@@ -194,7 +199,7 @@ if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
   fi
 
   # Prompt to enable Stage File Proxy
-  cd /var/www/$DIR
+  cd $ROOT
   echo -n "Would you like to enable Stage File Proxy? (Y/n): "; read -n 1 PROXY
   echo ""
   if [ -z "$PROXY" ]; then
@@ -216,14 +221,14 @@ if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
       fi
     fi
   else
-    cd /var/www/$DIR/sites/$MULTISITE/files
+    cd $ROOT/sites/$MULTISITE/files
     FILES=$($TERMINUS site backups get --site=$SITE --env=$ENV --element=files --latest)
     if [ ! -z "$FILES" ]; then
       LABEL=${FILES:0:11}
       if [ "$LABEL" == "Backup URL:" ]; then
         FILES=${FILES:12}
       fi
-      NEW_FILES=$DIR-files.tar.gz
+      NEW_FILES=$SITE-$ENV-files.tar.gz
       echo "Downloading latest files backup $FILES to $NEW_FILES..."
       curl -o $NEW_FILES $FILES
       tar zxvf $NEW_FILES
