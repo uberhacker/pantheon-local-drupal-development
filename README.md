@@ -254,6 +254,16 @@ Q. Where do I access my site on the server?
 A. All sites are subdirectories of /var/www.  So if your site is a dev environment of my-site, it would be located at /var/www/my-site-dev.
 
 
+Q. Why don't I see my VM instance running after I launch VirtualBox in Windows?
+
+A. Did you launch VirtualBox as administrator?  If you started Git Bash as administrator, you must also start VirtualBox as administrator, otherwise, you will not see any running instances.  Another reason might be you didn't execute "vagrant up" in the Git Bash terminal.
+
+
+Q. Why do I get the message "The Pantheon site cannot be located." when attempting to load the live environment database into my local environment?
+
+A. In order to pull down the live envirnoment database, you must execute the "site-db my-site live" command within the Drupal root of your local environment, otherwise, the command will not be able to locate your local "cloneable" environment.
+
+
 Q. Where is Solr?
 
 A. I may plan to install Solr in a future release.
