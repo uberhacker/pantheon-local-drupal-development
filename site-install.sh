@@ -18,9 +18,9 @@ if [ $? == 1 ]; then
 fi
 
 # Store command arguments
-SITENAME=""
+SITE=""
 if test $1; then
-  SITENAME=$1
+  SITE=$1
 fi
 ENV=dev
 if test $2; then
@@ -126,45 +126,44 @@ if [ $? == 1 ]; then
 fi
 
 # Prompt for the Pantheon Site Name
-if [ -z "$SITENAME" ]; then
+if [ -z "$SITE" ]; then
   echo ""
-  echo -n "Enter the Pantheon Site Name: "; read SITENAME
-  if [ -z "$SITENAME" ]; then
+  $TERMINUS sites list
+  echo -n "Enter the Pantheon Site Name: "; read SITE
+  if [ -z "$SITE" ]; then
     exit
   fi
 fi
 
 # Validate the Pantheon Site Name
-ID=$($TERMINUS site info --site=$SITENAME --field=id)
+ID=$($TERMINUS site info --site=$SITE --field=id)
 if [ -z "$ID" ]; then
   echo ""
-  echo "$SITENAME is not a valid Pantheon Site Name."
+  echo "$SITE is not a valid Pantheon Site Name."
   echo ""
   exit
 fi
-LABEL=${ID:0:3}
-if [ "$LABEL" == "id:" ]; then
-  ID=${ID:4}
-fi
+
 
 # Validate the Pantheon environment
-GIT_CMD=$($TERMINUS site connection-info --site=$SITENAME --env=$ENV --field=git_command)
+GIT_CMD=$($TERMINUS site connection-info --site=$SITE --env=$ENV --field=git_command)-$ENV
 if [ $? == 1 ]; then
   echo "$ENV is not a cloneable Pantheon environment."
   exit
 fi
 
 # Remove existing site files if they exist
-if [ -d /var/www/$SITENAME ]; then
-  sudo rm -rf /var/www/$SITENAME
+DIR="$SITE-$ENV"
+if [ -d "/var/www/$DIR" ]; then
+  sudo rm -rf /var/www/$DIR
 fi
 
 # Clone the Pantheon git repository
 cd /var/www
 $GIT_CMD
-if [ -d /var/www/$SITENAME ]; then
-  DBNAME=${SITENAME//-/_}
-  if [ ! -f /etc/nginx/sites-available/$SITENAME ]; then
+if [ -d /var/www/$DIR ]; then
+  DBNAME=${DIR//-/_}
+  if [ ! -f /etc/nginx/sites-available/$DIR ]; then
     # Create MySQL/MariaDB database
     echo "drop database if exists $DBNAME" | mysql -u root
     echo "create database $DBNAME" | mysql -u root
@@ -172,14 +171,14 @@ if [ -d /var/www/$SITENAME ]; then
     echo "flush privileges" | mysql -u root
 
     # Create Nginx virtual host
-    cp /etc/nginx/conf.d/drupal.conf.example /tmp/$SITENAME
-    sed -i "s,example.com,$SITENAME.dev,g" /tmp/$SITENAME
-    sed -i "s,drupal7,$SITENAME,g" /tmp/$SITENAME
-    sudo mv /tmp/$SITENAME /etc/nginx/sites-available/$SITENAME
-    sudo ln -s /etc/nginx/sites-available/$SITENAME /etc/nginx/sites-enabled/$SITENAME
+    cp /etc/nginx/conf.d/drupal.conf.example /tmp/$DIR
+    sed -i "s,example.com,$DIR.site,g" /tmp/$DIR
+    sed -i "s,drupal7,$DIR,g" /tmp/$DIR
+    sudo mv /tmp/$DIR /etc/nginx/sites-available/$DIR
+    sudo ln -s /etc/nginx/sites-available/$DIR /etc/nginx/sites-enabled/$DIR
 
     # Add synced folder
-    FOLDER=$(grep -n "config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" /vagrant/Vagrantfile)
+    FOLDER=$(grep -n "config.vm.synced_folder \"../$DIR\", \"/var/www/$DIR\"" /vagrant/Vagrantfile)
     if [ -z "$FOLDER" ]; then
       echo ""
       echo -n "Do you want to enable synced folders? (Y/n): "; read -n 1 SYNC
@@ -201,27 +200,27 @@ if [ -d /var/www/$SITENAME ]; then
           NFS=y
         fi
         POS=$(grep -n '# config.vm.synced_folder "../data", "/vagrant_data"' /vagrant/Vagrantfile | cut -d':' -f1)
-        head -$POS /vagrant/Vagrantfile > /tmp/$SITENAME
+        head -$POS /vagrant/Vagrantfile > /tmp/$DIR
         if [ "$NFS" == "y" ]; then
-          echo "  config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\", type: \"nfs\"" >> /tmp/$SITENAME
+          echo "  config.vm.synced_folder \"../$DIR\", \"/var/www/$DIR\", type: \"nfs\"" >> /tmp/$DIR
         else
-          echo "  config.vm.synced_folder \"../$SITENAME\", \"/var/www/$SITENAME\"" >> /tmp/$SITENAME
+          echo "  config.vm.synced_folder \"../$DIR\", \"/var/www/$DIR\"" >> /tmp/$DIR
         fi
-        tail -$(($(cat /vagrant/Vagrantfile | wc -l)-$POS)) /vagrant/Vagrantfile >> /tmp/$SITENAME
-        sudo mv -f /tmp/$SITENAME /vagrant/Vagrantfile
+        tail -$(($(cat /vagrant/Vagrantfile | wc -l)-$POS)) /vagrant/Vagrantfile >> /tmp/$DIR
+        sudo mv -f /tmp/$DIR /vagrant/Vagrantfile
         echo ""
-        echo "Synced folder configured from /var/www/$SITENAME to ../$SITENAME."
+        echo "Synced folder configured from /var/www/$DIR to ../$DIR."
         echo ""
         echo "Before performing an installation with site-install, execute the following:"
         echo ""
         echo "vagrant@debian:~$ exit"
-        echo "$ mkdir ../$SITENAME"
+        echo "$ mkdir ../$DIR"
         if [ "$NFS" == "y" ]; then
           echo "$ vagrant plugin install vagrant-winnfsd (Windows host only)"
         fi
         echo "$ vagrant reload"
         echo "$ vagrant ssh"
-        echo "vagrant@debian:~$ site-install $SITENAME"
+        echo "vagrant@debian:~$ site-install $SITE $ENV"
         echo ""
         echo "Otherwise, the next time the VM is loaded with vagrant up, the existing site files will be removed."
         echo ""
@@ -231,7 +230,7 @@ if [ -d /var/www/$SITENAME ]; then
   fi
 
   # Set install profile
-  PROFS=$(ls /var/www/$SITENAME/profiles)
+  PROFS=$(ls /var/www/$DIR/profiles)
   if [ -z "$PROFILE" ]; then
     echo ""
     echo "The following install profiles are available:"
@@ -256,16 +255,16 @@ if [ -d /var/www/$SITENAME ]; then
   # Set multisite
   MULTISITES=""
   DEFAULTSITE="default"
-  cd /var/www/$SITENAME/sites
+  cd /var/www/$DIR/sites
   SITES=$(echo $(ls -d */) | sed 's,/,,g')
-  for SITE in $SITES; do
-    if [[ "$SITE" != "all" && -f "/var/www/$SITENAME/sites/$SITE/settings.php" ]]; then
+  for S in $SITES; do
+    if [[ "$S" != "all" && -f "/var/www/$DIR/sites/$S/settings.php" ]]; then
       if [ -z "$MULTISITES" ]; then
-        MULTISITES="$SITE"
+        MULTISITES="$S"
       else
-        MULTISITES="$MULTISITES $SITE"
+        MULTISITES="$MULTISITES $S"
       fi
-      DEFAULTSITE="$SITE"
+      DEFAULTSITE="$S"
     fi
   done
   if [ "$DEFAULTSITE" == "$MULTISITES" ]; then
@@ -295,34 +294,34 @@ if [ -d /var/www/$SITENAME ]; then
   fi
 
   # Replace placeholder credentials if needed
-  SETTINGS="/var/www/$SITENAME/sites/$MULTISITE/settings.php"
+  SETTINGS="/var/www/$DIR/sites/$MULTISITE/settings.php"
   sed -i "s/DATABASE/$DBNAME/g" $SETTINGS
   sed -i "s/USERNAME/drupal/g" $SETTINGS
   sed -i "s/PASSWORD/drupal/g" $SETTINGS
 
   # Perform the drush site install
-  cd /var/www/$SITENAME
-  $DRUSH site-install $PROFILE --account-name=admin --account-pass=admin --db-url=mysql://drupal:drupal@localhost/$DBNAME --site-name=$SITENAME --sites-subdir=$MULTISITE -v -y
-  if [ -d /var/www/$SITENAME/sites/all/modules ]; then
+  cd /var/www/$DIR
+  $DRUSH site-install $PROFILE --account-name=admin --account-pass=admin --db-url=mysql://drupal:drupal@localhost/$DBNAME --site-name=$DIR --sites-subdir=$MULTISITE -v -y
+  if [ -d /var/www/$DIR/sites/all/modules ]; then
     # Make sure essential directories exist
-    if [ ! -d /var/www/$SITENAME/sites/all/modules/contrib ]; then
-      mkdir /var/www/$SITENAME/sites/all/modules/contrib
+    if [ ! -d /var/www/$DIR/sites/all/modules/contrib ]; then
+      mkdir /var/www/$DIR/sites/all/modules/contrib
     fi
-    if [ ! -d /var/www/$SITENAME/sites/all/modules/custom ]; then
-      mkdir /var/www/$SITENAME/sites/all/modules/custom
+    if [ ! -d /var/www/$DIR/sites/all/modules/custom ]; then
+      mkdir /var/www/$DIR/sites/all/modules/custom
     fi
-    if [ ! -d /var/www/$SITENAME/sites/all/modules/features ]; then
-      mkdir /var/www/$SITENAME/sites/all/modules/features
+    if [ ! -d /var/www/$DIR/sites/all/modules/features ]; then
+      mkdir /var/www/$DIR/sites/all/modules/features
     fi
-    if [ ! -d /var/www/$SITENAME/sites/default/files ]; then
-      mkdir /var/www/$SITENAME/sites/default/files
+    if [ ! -d /var/www/$DIR/sites/default/files ]; then
+      mkdir /var/www/$DIR/sites/default/files
     fi
 
     # Fix file permissions
-    for SITE in $SITES; do
-      sudo chmod -R ug+w /var/www/$SITENAME/sites/$SITE
-      if [ -d "/var/www/$SITENAME/sites/$SITE/files" ]; then
-        sudo chown -R vagrant:www-data /var/www/$SITENAME/sites/$SITE/files
+    for S in $SITES; do
+      sudo chmod -R ug+w /var/www/$DIR/sites/$S
+      if [ -d "/var/www/$DIR/sites/$S/files" ]; then
+        sudo chown -R vagrant:www-data /var/www/$DIR/sites/$S/files
       fi
     done
 
@@ -356,13 +355,13 @@ if [ -d /var/www/$SITENAME ]; then
     fi
 
     # Download and load the latest database backup if it exists
-    DB=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=db --latest)
+    DB=$($TERMINUS site backups get --site=$SITE --env=$ENV --element=db --latest)
     if [ ! -z "$DB" ]; then
       LABEL=${DB:0:11}
       if [ "$LABEL" == "Backup URL:" ]; then
         DB=${DB:12}
       fi
-      NEW_DB=$ENV-$SITENAME.sql
+      NEW_DB="$DIR.sql"
       echo "Downloading latest database backup $DB to $NEW_DB.gz..."
       curl -o $NEW_DB.gz $DB
       gunzip $NEW_DB.gz
@@ -435,7 +434,7 @@ EOF
       if [ -z "$XHPROF_MOD" ]; then
         /vagrant/xhprof-install.sh
       fi
-      XHPROF_PATH="/var/www/$SITENAME/sites/all/modules/contrib/xhprof"
+      XHPROF_PATH="/var/www/$DIR/sites/all/modules/contrib/xhprof"
       if [ ! -d "$XHPROF_PATH" ]; then
         $DRUSH dl xhprof
       fi
@@ -482,7 +481,7 @@ EOF
     if [ "$PROXY" == "y" ]; then
       $DRUSH dl -n stage_file_proxy
       $DRUSH en -y stage_file_proxy
-      DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=$ENV) | cut -d" " -f4)
+      DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITE --env=$ENV) | cut -d" " -f4)
       if [ ! -z "$DOMAIN" ]; then
         $DRUSH vset stage_file_proxy_hotlink 1
         if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
@@ -492,14 +491,14 @@ EOF
         fi
       fi
     else
-      cd /var/www/$SITENAME/sites/$MULTISITE/files
-      FILES=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=files --latest)
+      cd /var/www/$DIR/sites/$MULTISITE/files
+      FILES=$($TERMINUS site backups get --site=$SITE --env=$ENV --element=files --latest)
       if [ ! -z "$FILES" ]; then
         LABEL=${FILES:0:11}
         if [ "$LABEL" == "Backup URL:" ]; then
           FILES=${FILES:12}
         fi
-        NEW_FILES=$ENV-$SITENAME-files.tar.gz
+        NEW_FILES=$DIR-files.tar.gz
         echo "Downloading latest files backup $FILES to $NEW_FILES..."
         curl -o $NEW_FILES $FILES
         tar zxvf $NEW_FILES
@@ -530,7 +529,7 @@ EOF
 
     # Output final message
     echo ""
-    echo "Make sure '192.168.33.10 $SITENAME.dev' exists in your local hosts file and then open http://$SITENAME.dev in your browser."
+    echo "Make sure '192.168.33.10 $DIR.site' exists in your local hosts file and then open http://$DIR.site in your browser."
     echo "The local hosts file is located at /etc/hosts (MAC/BSD/Linux) or C:\Windows\System32\drivers\etc\hosts (Windows)."
     echo ""
   else
