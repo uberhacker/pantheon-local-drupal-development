@@ -17,51 +17,41 @@ if [ $? == 1 ]; then
   exit
 fi
 
+# Get the environment
+ENV=dev
+if test $2; then
+  ENV=$2
+fi
+
 # Get the Pantheon site name
-SITENAME=""
+DIR=""
+SITE=""
 if test $1; then
-  SITENAME=$1
+  SITE=$1
+  DIR=$SITE-$ENV
+  # Check if the site directory exists
+  if [ ! -d "/var/www/$DIR" ]; then
+    echo "$DIR is not a valid site directory."
+    exit
+  fi
 else
   ROOT=$($DRUSH status root --format=list)
   if [ ! -z $ROOT ]; then
     BASE=${ROOT:0:8}
     if [ $BASE == "/var/www" ]; then
-      SITENAME=${ROOT:9}
+      DIR=${ROOT:9}
+      END="-$ENV"
+      LEN=${#END}
+      SITE=${DIR:0:(-$LEN)}
     fi
   fi
 fi
 
-# Set the environment
-ENV=dev
-if test $2; then
-  ENV=$2
-  if [[ $2 != "dev" && $2 != "test" && $2 != "live" ]]; then
-    echo "Invalid environment $ENV."
-    exit
-  fi
-fi
-
-if [ ! -z $SITENAME ]; then
-  # Check if the site directory exists
-  if [ ! -d "/var/www/$SITENAME" ]; then
-    echo "$SITENAME is not a valid site."
-    exit
-  fi
-
-  # Check for prerequisites
-  GIT=$(which git)
+if [[ ! -z "$SITE" && ! -z "$DIR" ]]; then
+  # Validate the environment
+  $TERMINUS site environment-info --site=$SITE --env=$ENV --field=id
   if [ $? == 1 ]; then
-    echo "Git is not installed.  See https://github.com/git/git."
-    exit
-  fi
-  TERMINUS=$(which terminus)
-  if [ $? == 1 ]; then
-    echo "Terminus is not installed.  See https://github.com/pantheon-systems/cli."
-    exit
-  fi
-  DRUSH=$(which drush)
-  if [ $? == 1 ]; then
-    echo "Drush is not installed.  See http://www.drush.org/en/master/install."
+    $TERMINUS site environments --site=$SITE
     exit
   fi
 
@@ -92,8 +82,7 @@ if [ ! -z $SITENAME ]; then
 
   # Terminus authentication prompts
   WHOAMI=$($TERMINUS auth whoami)
-  AUTHENTICATED=${WHOAMI:0:25}
-  if [ "$AUTHENTICATED" != "You are authenticated as:" ]; then
+  if [ $? == 1 ]; then
     if [ -z "$EMAIL" ]; then
       echo -n "Enter your Pantheon email address: "; read EMAIL
       if [ -z "$EMAIL" ]; then
@@ -148,8 +137,7 @@ if [ ! -z $SITENAME ]; then
 
   # Remove saved credentials if unable to login
   WHOAMI=$($TERMINUS auth whoami)
-  AUTHENTICATED=${WHOAMI:0:25}
-  if [ "$AUTHENTICATED" != "You are authenticated as:" ]; then
+  if [ $? == 1 ]; then
     if [ -f $HOME/.terminus_auth ]; then
       rm -f $HOME/.terminus_auth
     fi
@@ -160,16 +148,16 @@ if [ ! -z $SITENAME ]; then
   MULTISITE=""
   MULTISITES=""
   DEFAULTSITE="default"
-  cd /var/www/$SITENAME/sites
+  cd /var/www/$DIR/sites
   SITES=$(echo $(ls -d */) | sed 's,/,,g')
-  for SITE in $SITES; do
-    if [[ "$SITE" != "all" && -f "/var/www/$SITENAME/sites/$SITE/settings.php" ]]; then
+  for S in $SITES; do
+    if [[ "$S" != "all" && -f "/var/www/$DIR/sites/$S/settings.php" ]]; then
       if [ -z "$MULTISITES" ]; then
-        MULTISITES="$SITE"
+        MULTISITES="$S"
       else
-        MULTISITES="$MULTISITES $SITE"
+        MULTISITES="$MULTISITES $S"
       fi
-      DEFAULTSITE="$SITE"
+      DEFAULTSITE="$S"
     fi
   done
   if [ "$DEFAULTSITE" == "$MULTISITES" ]; then
@@ -206,23 +194,23 @@ if [ ! -z $SITENAME ]; then
   fi
 
   # Pull the latest code changes from master
-  cd /var/www/$SITENAME
+  cd /var/www/$DIR
   $GIT pull
 
   # Download the latest database backup
-  DB="$ENV-$SITENAME.sql"
-  rm -f $DB $DB.gz
-  LATEST=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=db --latest)
-  if [ ! -z "$LATEST" ]; then
-    LABEL=${LATEST:0:11}
+  DB=$($TERMINUS site backups get --site=$SITE --env=$ENV --element=db --latest)
+  if [ ! -z "$DB" ]; then
+    LABEL=${DB:0:11}
     if [ "$LABEL" == "Backup URL:" ]; then
-      LATEST=${LATEST:12}
+      DB=${DB:12}
     fi
-    echo "Downloading the latest database backup to $DB ..."
-    curl -o $DB.gz $LATEST && gunzip $DB.gz
+    NEW_DB="$DIR.sql"
+    rm -f $NEW_DB $NEW_DB.gz
+    echo "Downloading the latest database backup $DB to $NEW_DB ..."
+    curl -o $NEW_DB.gz $DB && gunzip $NEW_DB.gz
     $DRUSH sql-drop -y
-    echo "Loading $DB ..."
-    $DRUSH sqlc < $DB
+    echo "Loading $NEW_DB ..."
+    $DRUSH sqlc < $NEW_DB
   fi
   # Make sure the Drupal admin user login is admin/admin
   $DRUSH sqlq "update users set name = 'admin' where uid = 1"
@@ -241,7 +229,7 @@ if [ ! -z $SITENAME ]; then
   if [ "$PROXY" == "y" ]; then
     $DRUSH dl -n stage_file_proxy
     $DRUSH en -y stage_file_proxy
-    DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITENAME --env=$ENV) | cut -d" " -f4)
+    DOMAIN=$(echo $($TERMINUS site hostnames list --site=$SITE --env=$ENV) | cut -d" " -f4)
     if [ ! -z "$DOMAIN" ]; then
       $DRUSH vset stage_file_proxy_hotlink 1
       if [[ ! -z "$HTTPUSER" && ! -z "$HTTPPASS" ]]; then
@@ -251,23 +239,42 @@ if [ ! -z $SITENAME ]; then
       fi
     fi
   else
-    echo "Downloading latest files backup to dev-$SITENAME-files.tar.gz..."
-    cd /var/www/$SITENAME/sites/$MULTISITE/files
-    FILES=$($TERMINUS site backups get --site=$SITENAME --env=$ENV --element=files --latest)
+    cd /var/www/$DIR/sites/$MULTISITE/files
+    FILES=$($TERMINUS site backups get --site=$SITE --env=$ENV --element=files --latest)
     if [ ! -z "$FILES" ]; then
       LABEL=${FILES:0:11}
       if [ "$LABEL" == "Backup URL:" ]; then
         FILES=${FILES:12}
       fi
-      curl -o dev-$SITENAME-files.tar.gz $FILES
-      tar zxvf dev-$SITENAME-files.tar.gz
-      sudo cp -r files_dev/* .
-      sudo rm -rf files_dev/
+      NEW_FILES=$DIR-files.tar.gz
+      rm -f $NEW_FILES
+      echo "Downloading latest files backup $FILES to $NEW_FILES..."
+      curl -o $NEW_FILES $FILES
+      tar zxvf $NEW_FILES
+      sudo cp -r files_$ENV/* .
+      sudo rm -rf files_$ENV/
       cd ..
       sudo chown -R vagrant:www-data files/
       sudo chmod -R g+w files/
     fi
   fi
+
+  # Enable development modules
+  #$DRUSH dl -n migrate migrate_extras coder devel devel_themer hacked redis simplehtmldom-7.x-1.12 stage_file_proxy
+  #$DRUSH en -y migrate_extras coder devel_themer hacked redis stage_file_proxy
+
+  # Disable unused/unwanted modules
+  $DRUSH dis -y overlay
+
+  # Disable cron
+  ELYSIA=$($DRUSH pml --status=Enabled | grep elysia_cron)
+  if [ ! -z "$ELYSIA" ]; then
+    $DRUSH vset elysia_cron_disabled 1
+  fi
+  $DRUSH vset cron_safe_threshold 0
+
+  # Restart web services
+  /vagrant/restart-lemp.sh
 else
   echo ""
   echo "Purpose: Downloads the latest code, files and database to your local environment"
