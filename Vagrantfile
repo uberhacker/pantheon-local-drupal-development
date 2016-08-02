@@ -129,8 +129,8 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias ip='ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d":" -f2 | cut -d" " -f1'
 alias git-who='git log --oneline --pretty=format:"%cn" | sort | uniq'
-alias composer-up="PWD=$(pwd) && cd $HOME/.composer && composer update && cd $PWD"
-alias vim-up="PWD=$(pwd) && cd $HOME/.vim && git submodule foreach git pull && cd $PWD"
+alias composer-up="PWD=\$(pwd) \&\& cd $HOME/.composer \&\& composer update \&\& cd \$PWD"
+alias vim-up="PWD=\$(pwd) \&\& cd $HOME/.vim \&\& git submodule foreach git pull \&\& cd \$PWD"
 alias drupalcs="phpcs --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias drupalcbf="phpcbf --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias git-config='/vagrant/git-config.sh'
