@@ -91,17 +91,18 @@ Vagrant.configure(2) do |config|
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install dos2unix git php5 php5-curl php5-fpm php5-gd php5-mcrypt php5-mysqlnd php5-redis php-pear redis-server mariadb-server nginx virtualbox-5.0
     sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" dist-upgrade
     sudo apt-get autoremove --purge -y
-    sudo apt-get autoclean -y
+    sudo apt-get autoclean
     sudo apt-get clean
     curl -sS https://getcomposer.org/installer | php
+    chmod +x composer.phar
     sudo mv composer.phar /usr/local/bin/composer
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o /home/vagrant/.git-prompt.sh
     curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o /home/vagrant/.git-completion.bash
     export HOME=/home/vagrant
     export COMPOSER_HOME=/home/vagrant/.composer
-    composer global require drush/drush:dev-master
+    composer global require drush/drush
     composer global require drupal/coder
-    composer global require "squizlabs/php_codesniffer=*"
+    composer global require squizlabs/php_codesniffer
     composer global require pantheon-systems/terminus
 cat << "EOF" >> .bashrc
 export PATH="$HOME/.composer/vendor/bin:/sbin:/usr/sbin:$PATH"
@@ -128,8 +129,8 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias ip='ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d":" -f2 | cut -d" " -f1'
 alias git-who='git log --oneline --pretty=format:"%cn" | sort | uniq'
-alias composer-up='cd $HOME/.composer;composer update'
-alias vim-up='cd $HOME/.vim;git submodule foreach git pull'
+alias composer-up="PWD=$(pwd) && cd $HOME/.composer && composer update && cd $PWD"
+alias vim-up="PWD=$(pwd) && cd $HOME/.vim && git submodule foreach git pull && cd $PWD"
 alias drupalcs="phpcs --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias drupalcbf="phpcbf --standard=$HOME/.composer/vendor/drupal/coder/coder_sniffer/Drupal --report=full --extensions=php,module,inc,install,test,profile,theme,js,css,info,txt"
 alias git-config='/vagrant/git-config.sh'
